@@ -1,17 +1,17 @@
 import Link from "next/link";
-import { ThemeToggle } from "@/components/ui/toggle/theme-toggle";
-import { PricingSection } from "@/components/shared/frontpage/pricing-section";
-import { WaitlistSection } from "@/components/shared/frontpage/waitlist-section";
+import { ThemeToggle } from "@/components/ui/toggle/ThemeToggleComponent";
+import { PricingSection } from "@/components/shared/frontpage/PricingSectionComponent";
+import { WaitlistSection } from "@/components/shared/frontpage/WaitlistSectionComponent";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       {/* Navbar */}
       <nav className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 BusinessHub
               </h1>
             </div>
@@ -25,7 +25,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/register"
-                className="rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition"
+                className="rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition"
               >
                 Registrarse
               </Link>
@@ -41,7 +41,7 @@ export default function Home() {
             {/* Title */}
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-6xl">
               Gestión Empresarial{" "}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Todo en Uno
               </span>
             </h1>
@@ -56,7 +56,7 @@ export default function Home() {
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link
                 href="/register"
-                className="rounded-md bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition"
+                className="rounded-md bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-blue-600 transition"
               >
                 Comenzar
               </Link>
@@ -72,7 +72,7 @@ export default function Home() {
 
         {/* Decorative blobs */}
         <div className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]" aria-hidden="true">
-          <div className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-blue-400 to-purple-600 opacity-20 dark:opacity-10 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"></div>
+          <div className="relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-blue-400 to-purple-600 opacity-20 dark:opacity-10 sm:left-[calc(50%+36rem)] sm:w-288.75"></div>
         </div>
       </section>
 
