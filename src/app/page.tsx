@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/ui/toggle/ThemeToggleComponent";
 import { PricingSection } from "@/components/shared/frontpage/PricingSectionComponent";
 import { WaitlistSection } from "@/components/shared/frontpage/WaitlistSectionComponent";
+import { LoginModal } from "@/components/shared/login-modal";
 
 export default function Home() {
   return (
@@ -17,12 +18,11 @@ export default function Home() {
             </div>
             <div className="flex gap-4 items-center">
               <ThemeToggle />
-              <Link
-                href="/login"
-                className="text-sm font-semibold leading-6 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition"
-              >
-                Iniciar sesión
-              </Link>
+              <LoginModal>
+                <button className="text-sm font-semibold leading-6 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition">
+                  Iniciar sesión
+                </button>
+              </LoginModal>
               <Link
                 href="/register"
                 className="rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition"
