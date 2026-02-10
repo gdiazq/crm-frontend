@@ -9,6 +9,7 @@ const router = useRouter()
 const storeAuth = useStoreAuth()
 const storeTheme = useStoreTheme()
 const { isDark } = storeToRefs(storeTheme)
+const { errorMessage, registerSubmitting } = storeToRefs(storeAuth)
 
 const fullName = ref('')
 const email = ref('')
@@ -17,8 +18,14 @@ const confirmPassword = ref('')
 
 const handleRegister = async () => {
   if (!fullName.value || !email.value || !password.value || password.value !== confirmPassword.value) return
-  storeAuth.login()
-  await router.push({ name: 'Dashboard' })
+  const success = await storeAuth.register({
+    fullName: fullName.value,
+    email: email.value,
+    password: password.value,
+  })
+  if (success) {
+    await router.push({ name: 'Dashboard' })
+  }
 }
 
 onMounted(() => {
@@ -101,9 +108,15 @@ onMounted(() => {
         />
 
         <ButtonComponent :is-dark="isDark" type="submit" variant="solid" :full-width="true">
-          Registrar cuenta
+          {{ registerSubmitting ? 'Registrando...' : 'Registrar cuenta' }}
         </ButtonComponent>
       </form>
+      <p v-if="password !== confirmPassword && confirmPassword.length > 0" class="mt-3 text-sm text-rose-400">
+        Las contraseñas no coinciden.
+      </p>
+      <p v-else-if="errorMessage" class="mt-3 text-sm text-rose-400">
+        {{ errorMessage }}
+      </p>
     </section>
   </main>
 </template>

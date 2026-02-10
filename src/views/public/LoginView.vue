@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { ButtonComponent, InputComponent, ThemeToggle } from '@/components'
+import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle } from '@/components'
 import { useStoreAuth, useStoreTheme } from '@/stores'
 
 const router = useRouter()
@@ -12,21 +12,70 @@ const storeTheme = useStoreTheme()
 const { isDark } = storeToRefs(storeTheme)
 const email = ref('')
 const password = ref('')
+const remindMe = ref(false)
+const showPassword = ref(false)
+
+const controlIsValidForm = computed(() => {
+  return Boolean(email.value && password.value)
+})
+
+const controlLoginAlert = computed(() => {
+  return storeAuth.loginError
+})
 
 const handleLogin = async () => {
-  if (!email.value || !password.value) return
-  storeAuth.login()
-  await router.push({ name: 'Dashboard' })
+  if (!controlIsValidForm.value) {
+    storeAuth.loginError = true
+    storeAuth.messageAlert = {
+      icon: 'fa-solid fa-triangle-exclamation',
+      variant: 'error',
+      message: 'Debes completar usuario y contraseña.',
+    }
+    return
+  }
+
+  const success = await storeAuth.login({ email: email.value, password: password.value })
+  if (success) {
+    if (remindMe.value) {
+      localStorage.setItem('rememberEmail', email.value)
+    } else {
+      localStorage.removeItem('rememberEmail')
+    }
+    await router.push({ name: 'Dashboard' })
+  }
+}
+
+const handleRecovery = () => {
+  storeAuth.loginError = false
+  storeAuth.messageAlert = {
+    icon: 'fa-solid fa-circle-info',
+    variant: 'info',
+    message: 'Recuperacion de contraseña disponible proximamente.',
+  }
+}
+
+const handleMicrosoftLogin = () => {
+  storeAuth.loginError = true
+  storeAuth.messageAlert = {
+    icon: 'fa-solid fa-circle-info',
+    variant: 'info',
+    message: 'Login con Microsoft estara disponible pronto.',
+  }
 }
 
 onMounted(() => {
   storeTheme.initTheme()
+  const rememberedEmail = localStorage.getItem('rememberEmail')
+  if (rememberedEmail) {
+    email.value = rememberedEmail
+    remindMe.value = true
+  }
 })
 </script>
 
 <template>
   <main
-    class="relative flex min-h-screen items-center justify-center overflow-hidden p-6 transition-colors"
+    class="relative flex min-h-screen flex-col overflow-hidden transition-colors"
     :class="isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'"
   >
     <div class="fixed right-4 top-4 z-50">
@@ -41,47 +90,122 @@ onMounted(() => {
       "
     ></div>
 
-    <section
-      class="w-full max-w-md rounded-2xl border p-8 shadow-2xl backdrop-blur"
-      :class="isDark ? 'border-white/10 bg-slate-900/75' : 'border-slate-200 bg-white/90 shadow-slate-200/70'"
-    >
-      <RouterLink
-        to="/"
-        class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
-        :class="isDark ? 'text-slate-300 opacity-90 focus-visible:ring-offset-slate-950' : 'text-slate-600 opacity-90 focus-visible:ring-offset-slate-50'"
+    <section class="flex flex-1 items-center justify-center p-6">
+      <section
+        class="w-full max-w-md rounded-2xl border p-8 shadow-2xl backdrop-blur"
+        :class="isDark ? 'border-white/10 bg-slate-900/75' : 'border-slate-200 bg-white/90 shadow-slate-200/70'"
       >
-        <span aria-hidden="true">←</span>
-        Volver al inicio
-      </RouterLink>
-      <h1 class="mt-4 text-balance text-2xl font-bold">Inicia sesion en tu CRM</h1>
-      <p class="mt-2 text-sm" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
-        Ingresa para acceder al dashboard, modulos y configuracion de tu cuenta.
-      </p>
-      <form class="mt-7 space-y-4" @submit.prevent="handleLogin">
-        <InputComponent
-          v-model.trim="email"
-          :is-dark="isDark"
-          label="Correo"
-          type="email"
-          autocomplete="email"
-          placeholder="tu@empresa.com"
-          required
-        />
-        <InputComponent
-          v-model="password"
-          :is-dark="isDark"
-          label="Contraseña"
-          type="password"
-          autocomplete="current-password"
-          placeholder="••••••••"
-          :minlength="6"
-          required
-        />
+        <RouterLink
+          to="/"
+          class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
+          :class="isDark ? 'text-slate-300 opacity-90 focus-visible:ring-offset-slate-950' : 'text-slate-600 opacity-90 focus-visible:ring-offset-slate-50'"
+        >
+          <span aria-hidden="true">←</span>
+          Volver al inicio
+        </RouterLink>
 
-        <ButtonComponent :is-dark="isDark" type="submit" variant="solid" :full-width="true">
-          Iniciar sesion
-        </ButtonComponent>
-      </form>
+        <div class="mt-4 text-center">
+          <h2 class="mt-4 text-balance text-2xl font-bold">Hola, inicia sesion</h2>
+          <p class="mt-2 text-sm" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
+            Ingresando los datos de tu cuenta corporativa
+          </p>
+        </div>
+
+        <form class="mt-7 space-y-4" @submit.prevent="handleLogin">
+          <div
+            v-if="controlLoginAlert"
+            class="rounded-lg border px-3 py-2 text-sm"
+            :class="isDark ? 'border-rose-400/40 bg-rose-900/20 text-rose-200' : 'border-rose-300 bg-rose-50 text-rose-700'"
+          >
+            {{ storeAuth.messageAlert.message || 'Usuario o contraseña incorrectos.' }}
+          </div>
+
+          <InputComponent
+            v-model.trim="email"
+            :is-dark="isDark"
+            label="Correo electrónico"
+            type="text"
+            autocomplete="username"
+            placeholder="usuario o correo"
+            required
+          />
+
+          <label class="block">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wide opacity-80">Contraseña</span>
+            <div class="relative">
+              <input
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'"
+                required
+                minlength="6"
+                autocomplete="current-password"
+                placeholder="••••••••"
+                class="w-full rounded-lg border px-3 py-2.5 pr-11 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-cyan-400"
+                :class="
+                  isDark
+                    ? 'border-slate-700 bg-slate-900 text-slate-100 placeholder:text-slate-500 focus-visible:ring-offset-slate-950'
+                    : 'border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-offset-slate-50'
+                "
+              />
+              <button
+                type="button"
+                class="absolute inset-y-0 right-2 my-auto h-8 rounded-md px-2 text-sm"
+                :class="isDark ? 'text-slate-300 hover:text-cyan-300' : 'text-slate-600 hover:text-cyan-700'"
+                @click="showPassword = !showPassword"
+              >
+                {{ showPassword ? 'Ocultar' : 'Ver' }}
+              </button>
+            </div>
+          </label>
+
+          <div class="flex items-center justify-between text-sm">
+            <label class="inline-flex items-center gap-2">
+              <input v-model="remindMe" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-400" />
+              <span :class="isDark ? 'text-slate-300' : 'text-slate-600'">Recordarme</span>
+            </label>
+            <button
+              type="button"
+              class="font-semibold transition"
+              :class="isDark ? 'text-cyan-300 hover:text-cyan-200' : 'text-cyan-700 hover:text-cyan-800'"
+              @click="handleRecovery"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
+
+          <ButtonComponent
+            :is-dark="isDark"
+            type="submit"
+            variant="solid"
+            :full-width="true"
+            :disabled="storeAuth.loginSubmitting"
+          >
+            {{ storeAuth.loginSubmitting ? 'Accediendo...' : 'Iniciar sesión' }}
+          </ButtonComponent>
+
+          <div class="flex items-center gap-3 py-1">
+            <div class="h-px flex-1" :class="isDark ? 'bg-slate-700' : 'bg-slate-300'"></div>
+            <span class="text-xs uppercase tracking-wide" :class="isDark ? 'text-slate-400' : 'text-slate-500'">o</span>
+            <div class="h-px flex-1" :class="isDark ? 'bg-slate-700' : 'bg-slate-300'"></div>
+          </div>
+
+          <button
+            type="button"
+            class="inline-flex w-full items-center justify-center rounded-lg border px-4 py-3 text-sm font-semibold transition"
+            :class="
+              isDark
+                ? 'border-slate-700 bg-slate-900 text-slate-100 hover:border-cyan-300/60'
+                : 'border-slate-300 bg-white text-slate-700 hover:border-cyan-500'
+            "
+            :disabled="storeAuth.loginSubmitting"
+            @click="handleMicrosoftLogin"
+          >
+            Continuar con Microsoft
+          </button>
+        </form>
+      </section>
     </section>
+
+    <FooterComponent :is-dark="isDark" />
   </main>
 </template>

@@ -1,47 +1,287 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
+import axios from 'axios'
+import { axiosInstance } from '@/config'
+import type {
+  AlertsCore,
+  AuthLoginPayload,
+  AuthLoginResponse,
+  AuthRegisterPayload,
+  AuthUser,
+  ModulePermission,
+  UserAuthConfig,
+} from '@/interfaces'
 
-const AUTH_KEY = 'crm-auth'
+const ACCESS_TOKEN_KEY = 'authToken'
+const REFRESH_TOKEN_KEY = 'refreshToken'
+const TOKEN_TYPE_KEY = 'tokenType'
+const EXPIRES_IN_KEY = 'expiresIn'
+const USER_KEY = 'authUser'
+const PERMISSIONS_KEY = 'permissions'
+const CONFIG_KEY = 'config'
+const MENU_KEY = 'menu'
+
+const initialUserConfig: UserAuthConfig = {
+  darkTheme: false,
+}
+
+const initialAlert: AlertsCore = {
+  icon: 'fa-solid fa-circle-info',
+  variant: 'info',
+  message: '',
+}
 
 type PermissionType = 'canRead' | 'canCreate' | 'canUpdate' | 'canDelete'
 
 export const useStoreAuth = defineStore('auth', () => {
+  const user = ref<AuthUser | null>(null)
+  const permissions = ref<ModulePermission[]>([])
+  const config = ref<UserAuthConfig>(
+    JSON.parse(localStorage.getItem(CONFIG_KEY) || 'null') || { ...initialUserConfig },
+  )
+  const menu = ref(JSON.parse(localStorage.getItem(MENU_KEY) || 'null'))
   const isAuthenticated = ref(false)
-  const user = ref<{ name: string } | null>(null)
+
+  const sidebar = reactive({
+    toggleMobile: false,
+    toggleCollapse: false,
+  })
+
+  const loginSubmitting = ref(false)
+  const registerSubmitting = ref(false)
+  const loginError = ref(false)
+  const messageAlert = ref<AlertsCore>({ ...initialAlert })
+  const successMessage = ref<string | null>(null)
+  const errorMessage = ref<string | null>(null)
+  const errorBack = ref<unknown | null>(null)
+  const loadingUser = ref(false)
+
+  const setSession = (data: AuthLoginResponse) => {
+    user.value = data.user
+    permissions.value = data.modules || []
+    isAuthenticated.value = true
+
+    localStorage.setItem(ACCESS_TOKEN_KEY, data.access_token)
+    localStorage.setItem(REFRESH_TOKEN_KEY, data.refresh_token)
+    localStorage.setItem(TOKEN_TYPE_KEY, data.token_type)
+    localStorage.setItem(EXPIRES_IN_KEY, String(data.expires_in))
+    localStorage.setItem(USER_KEY, JSON.stringify(data.user))
+    localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(permissions.value))
+  }
 
   const hydrate = () => {
-    if (typeof window === 'undefined') return
-    const session = window.localStorage.getItem(AUTH_KEY)
-    isAuthenticated.value = session === '1'
-    user.value = isAuthenticated.value ? { name: 'Admin' } : null
+    const token = localStorage.getItem(ACCESS_TOKEN_KEY)
+    const savedUser = localStorage.getItem(USER_KEY)
+    const savedPermissions = localStorage.getItem(PERMISSIONS_KEY)
+
+    isAuthenticated.value = Boolean(token)
+    user.value = savedUser ? (JSON.parse(savedUser) as AuthUser) : null
+    permissions.value = savedPermissions ? (JSON.parse(savedPermissions) as ModulePermission[]) : []
+
+    return isAuthenticated.value
   }
 
-  const login = () => {
-    isAuthenticated.value = true
-    user.value = { name: 'Admin' }
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(AUTH_KEY, '1')
+  const getUserConfig = async () => {
+    try {
+      const response = await fetch('/db/config/config.json')
+      if (!response.ok) return
+      const data = await response.json()
+      menu.value = data.menu ?? null
+      if (!localStorage.getItem(CONFIG_KEY) && data.config) {
+        localStorage.setItem(CONFIG_KEY, JSON.stringify(data.config))
+        config.value = data.config
+      }
+      if (menu.value) {
+        localStorage.setItem(MENU_KEY, JSON.stringify(menu.value))
+      }
+    } catch (error) {
+      errorBack.value = error
     }
   }
 
-  const logout = () => {
-    isAuthenticated.value = false
+  const login = async (credentials: AuthLoginPayload) => {
+    try {
+      loginSubmitting.value = true
+      loginError.value = false
+      errorMessage.value = null
+      successMessage.value = null
+
+      const payload = {
+        email: credentials.email,
+        password: credentials.password,
+      }
+
+      const { data } = await axiosInstance.post<AuthLoginResponse>('/auth/login', payload)
+
+      setSession(data)
+      await getUserConfig()
+      successMessage.value = 'Inicio de sesion exitoso.'
+      return true
+    } catch (error) {
+      loginError.value = true
+      errorBack.value = error
+      let message = 'No se pudo iniciar sesion. Intenta nuevamente.'
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status
+        if (status === 400) message = 'Datos invalidos. Verifica correo y contraseña.'
+        if (status === 401) message = 'Credenciales invalidas.'
+        if (status === 500 || status === 503) message = 'Servicio no disponible temporalmente.'
+      }
+
+      messageAlert.value = {
+        icon: 'fa-solid fa-triangle-exclamation',
+        variant: 'error',
+        message,
+      }
+      errorMessage.value = message
+      return false
+    } finally {
+      loginSubmitting.value = false
+    }
+  }
+
+  const register = async (payload: AuthRegisterPayload) => {
+    try {
+      registerSubmitting.value = true
+      loginError.value = false
+      errorMessage.value = null
+      successMessage.value = null
+
+      const [firstName, ...lastNameParts] = payload.fullName.trim().split(' ')
+      const data_ = {
+        username: payload.email,
+        email: payload.email,
+        password: payload.password,
+        first_name: firstName || '',
+        last_name: lastNameParts.join(' ') || '',
+      }
+
+      await axiosInstance.post('/auth/register', data_)
+      successMessage.value = 'Registro exitoso.'
+      return await login({ email: payload.email, password: payload.password })
+    } catch (error) {
+      errorBack.value = error
+      let message = 'No se pudo completar el registro.'
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status
+        if (status === 409) message = 'El correo ya esta registrado.'
+        if (status === 400) message = 'Datos de registro invalidos.'
+      }
+
+      messageAlert.value = {
+        icon: 'fa-solid fa-triangle-exclamation',
+        variant: 'error',
+        message,
+      }
+      errorMessage.value = message
+      return false
+    } finally {
+      registerSubmitting.value = false
+    }
+  }
+
+  async function getCurrentUser() {
+    loadingUser.value = true
+
+    try {
+      const token = localStorage.getItem(ACCESS_TOKEN_KEY)
+      if (!token) {
+        user.value = null
+        isAuthenticated.value = false
+        return
+      }
+
+      const { data } = await axiosInstance.get<{ user: AuthUser; modules?: ModulePermission[] }>('/auth/me')
+      user.value = data.user
+      permissions.value = data.modules || []
+      isAuthenticated.value = true
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user))
+      localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(permissions.value))
+      await getUserConfig()
+    } catch (error) {
+      user.value = null
+      permissions.value = []
+      isAuthenticated.value = false
+      errorBack.value = error
+    } finally {
+      loadingUser.value = false
+    }
+  }
+
+  const reset = () => {
     user.value = null
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(AUTH_KEY)
+    permissions.value = []
+    menu.value = null
+    isAuthenticated.value = false
+  }
+
+  const logout = async () => {
+    reset()
+    localStorage.removeItem(USER_KEY)
+    localStorage.removeItem(PERMISSIONS_KEY)
+    localStorage.removeItem(MENU_KEY)
+    localStorage.removeItem(ACCESS_TOKEN_KEY)
+    localStorage.removeItem(REFRESH_TOKEN_KEY)
+    localStorage.removeItem(TOKEN_TYPE_KEY)
+    localStorage.removeItem(EXPIRES_IN_KEY)
+  }
+
+  const handleSidebarCollapse = () => {
+    sidebar.toggleCollapse = !sidebar.toggleCollapse
+  }
+
+  const handleSidebarMobile = () => {
+    sidebar.toggleMobile = !sidebar.toggleMobile
+  }
+
+  const darkThemeToggle = () => {
+    if (!config.value) return
+    config.value.darkTheme = !config.value.darkTheme
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(config.value))
+  }
+
+  const changeTheme = () => {
+    if (!config.value?.darkTheme) {
+      document.documentElement.setAttribute('data-eit-theme', 'light')
+    } else {
+      document.documentElement.setAttribute('data-eit-theme', 'dark')
     }
   }
 
-  const hasPermission = (_module: string, _permissionType: PermissionType) => {
-    return true
+  const hasPermission = (moduleName: string, permissionType: PermissionType) => {
+    const module = permissions.value.find((item) => item.module === moduleName)
+    if (!module) return false
+    return Boolean(module[permissionType])
   }
 
   return {
-    isAuthenticated,
     user,
+    permissions,
+    config,
+    menu,
+    sidebar,
+    isAuthenticated,
+    loginSubmitting,
+    registerSubmitting,
+    loginError,
+    messageAlert,
+    successMessage,
+    errorMessage,
+    errorBack,
+    loadingUser,
     hydrate,
+    getUserConfig,
     login,
+    register,
+    getCurrentUser,
+    reset,
     logout,
+    handleSidebarCollapse,
+    handleSidebarMobile,
+    darkThemeToggle,
+    changeTheme,
     hasPermission,
   }
 })
