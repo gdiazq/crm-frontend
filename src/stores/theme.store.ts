@@ -1,0 +1,59 @@
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+
+const THEME_KEY = 'crm-theme'
+
+export const useStoreTheme = defineStore('theme', () => {
+  const isDark = ref(true)
+  const errorBack = ref<Error | null>(null)
+  const isInitialized = ref(false)
+
+  const applyThemeClass = (value: boolean) => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', value)
+    }
+  }
+
+  const setTheme = (value: boolean) => {
+    isDark.value = value
+    applyThemeClass(value)
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(THEME_KEY, value ? 'dark' : 'light')
+    }
+  }
+
+  const toggleTheme = () => {
+    setTheme(!isDark.value)
+  }
+
+  const initTheme = () => {
+    try {
+      if (isInitialized.value) {
+        applyThemeClass(isDark.value)
+        return
+      }
+
+      const storedTheme = typeof window !== 'undefined' ? window.localStorage.getItem(THEME_KEY) : null
+      if (storedTheme === 'light') {
+        isDark.value = false
+      } else if (storedTheme === 'dark') {
+        isDark.value = true
+      } else if (typeof window !== 'undefined') {
+        isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+      }
+
+      applyThemeClass(isDark.value)
+      isInitialized.value = true
+    } catch (error) {
+      errorBack.value = error as Error
+    }
+  }
+
+  return {
+    isDark,
+    errorBack,
+    initTheme,
+    setTheme,
+    toggleTheme,
+  }
+})
