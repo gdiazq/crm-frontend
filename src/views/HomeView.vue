@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { FeatureGrid, HeroContent, HeroHeader, KpiPanel } from '@/components'
+import { FeatureGrid, HeroContent, HeroHeader, KpiPanel, ThemeToggle } from '@/components'
 import { CRM_FEATURES, CRM_STAGES, CRM_STATS } from '@/constants'
 import { useStoreTheme } from '@/stores'
 
@@ -18,6 +18,9 @@ onMounted(() => {
     class="min-h-screen transition-colors"
     :class="isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'"
   >
+    <div class="fixed right-4 top-4 z-50">
+      <ThemeToggle :is-dark="isDark" @toggle="themeStore.toggleTheme" />
+    </div>
     <section
       class="relative isolate overflow-hidden border-b"
       :class="isDark ? 'border-white/10' : 'border-slate-200'"
@@ -31,7 +34,7 @@ onMounted(() => {
         "
       ></div>
       <div class="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-24">
-        <HeroHeader :is-dark="isDark" @toggle-theme="themeStore.toggleTheme" />
+        <HeroHeader :is-dark="isDark" />
         <div class="mt-12 grid gap-10 lg:grid-cols-2 lg:items-center">
           <HeroContent :is-dark="isDark" />
           <KpiPanel :is-dark="isDark" :stats="CRM_STATS" :stages="CRM_STAGES" />
