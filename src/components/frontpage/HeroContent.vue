@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ButtonComponent } from '@/components'
+
 defineProps<{
   isDark: boolean
 }>()
@@ -14,24 +16,12 @@ defineProps<{
       vista clara de todo el ciclo de cliente.
     </p>
     <div class="mt-8 flex flex-wrap gap-3">
-      <button
-        type="button"
-        class="rounded-lg px-5 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
-        :class="isDark ? 'bg-cyan-400 text-slate-950 hover:bg-cyan-300' : 'bg-cyan-600 text-white hover:bg-cyan-700'"
-      >
+      <ButtonComponent :is-dark="isDark" variant="solid">
         Solicitar demo
-      </button>
-      <button
-        type="button"
-        class="rounded-lg border px-5 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
-        :class="
-          isDark
-            ? 'border-slate-700 text-slate-100 hover:border-slate-500 focus-visible:ring-offset-slate-950'
-            : 'border-slate-300 text-slate-700 hover:border-slate-500 focus-visible:ring-offset-slate-50'
-        "
-      >
+      </ButtonComponent>
+      <ButtonComponent :is-dark="isDark" variant="outline">
         Ver dashboard
-      </button>
+      </ButtonComponent>
     </div>
   </div>
 </template>

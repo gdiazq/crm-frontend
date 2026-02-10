@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, InputComponent, ThemeToggle } from '@/components'
 import { useStoreAuth, useStoreTheme } from '@/stores'
@@ -10,11 +9,14 @@ const router = useRouter()
 const storeAuth = useStoreAuth()
 const storeTheme = useStoreTheme()
 const { isDark } = storeToRefs(storeTheme)
+
+const fullName = ref('')
 const email = ref('')
 const password = ref('')
+const confirmPassword = ref('')
 
-const handleLogin = async () => {
-  if (!email.value || !password.value) return
+const handleRegister = async () => {
+  if (!fullName.value || !email.value || !password.value || password.value !== confirmPassword.value) return
   storeAuth.login()
   await router.push({ name: 'Dashboard' })
 }
@@ -53,11 +55,21 @@ onMounted(() => {
         <span aria-hidden="true">←</span>
         Volver al inicio
       </RouterLink>
-      <h1 class="mt-4 text-balance text-2xl font-bold">Inicia sesion en tu CRM</h1>
+      <h1 class="mt-4 text-balance text-2xl font-bold">Crea tu cuenta</h1>
       <p class="mt-2 text-sm" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
-        Ingresa para acceder al dashboard, modulos y configuracion de tu cuenta.
+        Registra tu acceso para usar el CRM.
       </p>
-      <form class="mt-7 space-y-4" @submit.prevent="handleLogin">
+
+      <form class="mt-7 space-y-4" @submit.prevent="handleRegister">
+        <InputComponent
+          v-model.trim="fullName"
+          :is-dark="isDark"
+          label="Nombre completo"
+          type="text"
+          autocomplete="name"
+          placeholder="Guillermo Diaz"
+          required
+        />
         <InputComponent
           v-model.trim="email"
           :is-dark="isDark"
@@ -72,14 +84,24 @@ onMounted(() => {
           :is-dark="isDark"
           label="Contraseña"
           type="password"
-          autocomplete="current-password"
+          autocomplete="new-password"
+          placeholder="••••••••"
+          :minlength="6"
+          required
+        />
+        <InputComponent
+          v-model="confirmPassword"
+          :is-dark="isDark"
+          label="Confirmar contraseña"
+          type="password"
+          autocomplete="new-password"
           placeholder="••••••••"
           :minlength="6"
           required
         />
 
         <ButtonComponent :is-dark="isDark" type="submit" variant="solid" :full-width="true">
-          Iniciar sesion
+          Registrar cuenta
         </ButtonComponent>
       </form>
     </section>

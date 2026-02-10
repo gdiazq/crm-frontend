@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ButtonComponent } from '@/components'
+
 defineProps<{
   isDark: boolean
 }>()
@@ -18,16 +20,13 @@ defineProps<{
       </p>
     </div>
 
-    <RouterLink
-      to="/login"
-      class="rounded-lg border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
-      :class="
-        isDark
-          ? 'border-slate-700 bg-slate-900 text-slate-100 hover:border-cyan-300/60 hover:text-cyan-300 focus-visible:ring-offset-slate-950'
-          : 'border-slate-300 bg-white text-slate-700 hover:border-cyan-500 hover:text-cyan-700 focus-visible:ring-offset-slate-50'
-      "
-    >
-      Iniciar sesion
-    </RouterLink>
+    <div class="flex items-center gap-2">
+      <ButtonComponent :is-dark="isDark" to="/register" variant="outline">
+        Registrar
+      </ButtonComponent>
+      <ButtonComponent :is-dark="isDark" to="/login" variant="outline">
+        Iniciar sesion
+      </ButtonComponent>
+    </div>
   </div>
 </template>

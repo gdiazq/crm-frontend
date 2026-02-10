@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { FeatureGrid, HeroContent, HeroHeader, KpiPanel, ThemeToggle } from '@/components'
+import { FeatureGrid, FooterComponent, HeroContent, HeroHeader, KpiPanel, ThemeToggle } from '@/components'
 import { CRM_FEATURES, CRM_STAGES, CRM_STATS } from '@/constants'
 import { useStoreTheme } from '@/stores'
 
@@ -43,5 +43,6 @@ onMounted(() => {
     </section>
 
     <FeatureGrid :is-dark="isDark" :features="CRM_FEATURES" />
+    <FooterComponent :is-dark="isDark" />
   </main>
 </template>

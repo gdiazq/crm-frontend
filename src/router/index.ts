@@ -4,6 +4,7 @@ import { useStoreAuth } from '@/stores'
 import { handleAuthentication } from '@/middlewares/auth.middleware'
 
 import LoginView from '@/views/public/LoginView.vue'
+import RegisterView from '@/views/public/RegisterView.vue'
 import LogoutView from '@/views/public/LogoutView.vue'
 import HomeView from '@/views/HomeView.vue'
 import DashboardView from '@/views/private/DashboardView.vue'
@@ -22,6 +23,20 @@ const routes: RouteRecordRaw[] = [
       permissionType: 'canRead',
       requiresPermissions: false,
       module: 'Login',
+      parent: '',
+    },
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: RegisterView,
+    meta: {
+      title: 'Registro',
+      layout: 'LayoutPublicDefault',
+      requiresAuth: false,
+      permissionType: 'canRead',
+      requiresPermissions: false,
+      module: 'Register',
       parent: '',
     },
   },

@@ -1,13 +1,21 @@
 import ThemeToggle from './common/ThemeToggle.vue'
+import FooterComponent from './frontpage/FooterComponent.vue'
 import FeatureGrid from './frontpage/FeatureGrid.vue'
 import HeroContent from './frontpage/HeroContent.vue'
 import HeroHeader from './frontpage/HeroHeader.vue'
 import KpiPanel from './frontpage/KpiPanel.vue'
+import ButtonComponent from './ui/button/ButtonComponent.vue'
+import InputComponent from './ui/input/InputComponent.vue'
+import SelectComponent from './ui/select/SelectComponent.vue'
 
 export {
   ThemeToggle,
+  FooterComponent,
   FeatureGrid,
   HeroContent,
   HeroHeader,
   KpiPanel,
+  ButtonComponent,
+  InputComponent,
+  SelectComponent,
 }
