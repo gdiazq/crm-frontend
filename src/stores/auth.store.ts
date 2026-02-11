@@ -148,13 +148,13 @@ export const useStoreAuth = defineStore('auth', () => {
       errorMessage.value = null
       successMessage.value = null
 
-      const [firstName, ...lastNameParts] = payload.fullName.trim().split(' ')
       const data_ = {
-        username: payload.email,
+        username: payload.username,
         email: payload.email,
         password: payload.password,
-        first_name: firstName || '',
-        last_name: lastNameParts.join(' ') || '',
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        phoneNumber: payload.phoneNumber,
       }
 
       await axiosInstance.post('/auth/register', data_)

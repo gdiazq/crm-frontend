@@ -6,6 +6,7 @@ import HeroHeader from './frontpage/HeroHeader.vue'
 import KpiPanel from './frontpage/KpiPanel.vue'
 import ButtonComponent from './ui/button/ButtonComponent.vue'
 import InputComponent from './ui/input/InputComponent.vue'
+import PasswordInputComponent from './ui/input/PasswordInputComponent.vue'
 import SelectComponent from './ui/select/SelectComponent.vue'
 
 export {
@@ -17,5 +18,6 @@ export {
   KpiPanel,
   ButtonComponent,
   InputComponent,
+  PasswordInputComponent,
   SelectComponent,
 }

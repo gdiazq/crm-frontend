@@ -13,9 +13,12 @@ export interface AuthLoginPayload {
 }
 
 export interface AuthRegisterPayload {
-  fullName: string
+  username: string
   email: string
   password: string
+  firstName: string
+  lastName: string
+  phoneNumber: string
 }
 
 export interface AuthLoginResponse {

@@ -3,41 +3,59 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle } from '@/components'
+import { ButtonComponent, FooterComponent, InputComponent, PasswordInputComponent, ThemeToggle } from '@/components'
 import { useStoreAuth, useStoreTheme } from '@/stores'
 
 const router = useRouter()
 const storeAuth = useStoreAuth()
 const storeTheme = useStoreTheme()
 const { isDark } = storeToRefs(storeTheme)
-const email = ref('')
-const password = ref('')
+const form = ref({
+  email: '',
+  password: '',
+})
 const remindMe = ref(false)
-const showPassword = ref(false)
 
 const controlIsValidForm = computed(() => {
-  return Boolean(email.value && password.value)
+  return Object.values(form.value).every((value) => Boolean(value))
 })
 
 const controlLoginAlert = computed(() => {
   return storeAuth.loginError
 })
 
-const handleLogin = async () => {
+const handleEmailValue = (value: string) => {
+  form.value.email = value
+}
+
+const handlePasswordValue = (value: string) => {
+  form.value.password = value
+}
+
+const handleMessageAlert = (message?: string) => {
+  storeAuth.loginError = true
+  storeAuth.messageAlert = {
+    icon: 'fa-solid fa-triangle-exclamation',
+    variant: 'error',
+    message: message || 'Debes completar usuario y contraseña.',
+  }
+}
+
+const submitForm = async () => {
   if (!controlIsValidForm.value) {
-    storeAuth.loginError = true
-    storeAuth.messageAlert = {
-      icon: 'fa-solid fa-triangle-exclamation',
-      variant: 'error',
-      message: 'Debes completar usuario y contraseña.',
-    }
+    handleMessageAlert()
     return
   }
 
-  const success = await storeAuth.login({ email: email.value, password: password.value })
+  const success = await storeAuth.login(form.value)
+  if (!success) {
+    handleMessageAlert(storeAuth.messageAlert.message || 'Usuario o contraseña incorrectos.')
+    return
+  }
+
   if (success) {
     if (remindMe.value) {
-      localStorage.setItem('rememberEmail', email.value)
+      localStorage.setItem('rememberEmail', form.value.email)
     } else {
       localStorage.removeItem('rememberEmail')
     }
@@ -67,7 +85,7 @@ onMounted(() => {
   storeTheme.initTheme()
   const rememberedEmail = localStorage.getItem('rememberEmail')
   if (rememberedEmail) {
-    email.value = rememberedEmail
+    handleEmailValue(rememberedEmail)
     remindMe.value = true
   }
 })
@@ -111,7 +129,7 @@ onMounted(() => {
           </p>
         </div>
 
-        <form class="mt-7 space-y-4" @submit.prevent="handleLogin">
+        <form class="mt-7 space-y-4" @submit.prevent="submitForm">
           <div
             v-if="controlLoginAlert"
             class="rounded-lg border px-3 py-2 text-sm"
@@ -121,42 +139,26 @@ onMounted(() => {
           </div>
 
           <InputComponent
-            v-model.trim="email"
+            v-model.trim="form.email"
             :is-dark="isDark"
             label="Correo electrónico"
             type="text"
             autocomplete="username"
             placeholder="usuario o correo"
+            @update:model-value="handleEmailValue"
             required
           />
 
-          <label class="block">
-            <span class="mb-1 block text-xs font-semibold uppercase tracking-wide opacity-80">Contraseña</span>
-            <div class="relative">
-              <input
-                v-model="password"
-                :type="showPassword ? 'text' : 'password'"
-                required
-                minlength="6"
-                autocomplete="current-password"
-                placeholder="••••••••"
-                class="w-full rounded-lg border px-3 py-2.5 pr-11 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-cyan-400"
-                :class="
-                  isDark
-                    ? 'border-slate-700 bg-slate-900 text-slate-100 placeholder:text-slate-500 focus-visible:ring-offset-slate-950'
-                    : 'border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-offset-slate-50'
-                "
-              />
-              <button
-                type="button"
-                class="absolute inset-y-0 right-2 my-auto h-8 rounded-md px-2 text-sm"
-                :class="isDark ? 'text-slate-300 hover:text-cyan-300' : 'text-slate-600 hover:text-cyan-700'"
-                @click="showPassword = !showPassword"
-              >
-                {{ showPassword ? 'Ocultar' : 'Ver' }}
-              </button>
-            </div>
-          </label>
+          <PasswordInputComponent
+            v-model="form.password"
+            :is-dark="isDark"
+            label="Contraseña"
+            :minlength="6"
+            autocomplete="current-password"
+            placeholder="••••••••"
+            required
+            @update:model-value="handlePasswordValue"
+          />
 
           <div class="flex items-center justify-between text-sm">
             <label class="inline-flex items-center gap-2">
