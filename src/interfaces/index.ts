@@ -1,6 +1,7 @@
 import type { CrmFeature, CrmStage, CrmStat } from './frontpage/crm'
 import type {
   AlertsCore,
+  AuthCheckEmailResponse,
   AuthLoginPayload,
   AuthLoginResponse,
   AuthRegisterPayload,
@@ -20,6 +21,7 @@ export type {
   AuthVerifyEmailPayload,
   AuthUser,
   AlertsCore,
+  AuthCheckEmailResponse,
   ModulePermission,
   UserAuthConfig,
 }

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle } from '@/components'
@@ -10,7 +9,7 @@ const router = useRouter()
 const storeAuth = useStoreAuth()
 const storeTheme = useStoreTheme()
 const { isDark } = storeToRefs(storeTheme)
-const { errorMessage, registerSubmitting } = storeToRefs(storeAuth)
+const { errorMessage, registerSubmitting, checkEmailSubmitting, emailAvailable } = storeToRefs(storeAuth)
 
 const form = ref({
   username: '',
@@ -23,6 +22,12 @@ const form = ref({
 const controlIsValidForm = computed(() => {
   return Object.values(form.value).every((value) => Boolean(value))
 })
+const controlCanSubmit = computed(() => {
+  return controlIsValidForm.value && emailAvailable.value !== false && !checkEmailSubmitting.value
+})
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const emailCheckTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const handleUsernameValue = (value: string) => {
   form.value.username = value
@@ -54,6 +59,16 @@ const submitForm = async () => {
     return
   }
 
+  const available = await storeAuth.checkEmailAvailability(form.value.email.trim())
+  if (available === false) {
+    handleMessageAlert('El correo ya esta registrado.')
+    return
+  }
+  if (available === null) {
+    handleMessageAlert('No se pudo validar el correo. Intenta nuevamente.')
+    return
+  }
+
   const success = await storeAuth.register({
     username: form.value.username,
     email: form.value.email,
@@ -73,6 +88,32 @@ const handleGoHome = () => {
 
 onMounted(() => {
   storeTheme.initTheme()
+})
+
+watch(
+  () => form.value.email,
+  (value) => {
+    const email = value.trim()
+    errorMessage.value = null
+    emailAvailable.value = null
+
+    if (emailCheckTimer.value) {
+      clearTimeout(emailCheckTimer.value)
+      emailCheckTimer.value = null
+    }
+
+    if (!emailRegex.test(email)) return
+
+    emailCheckTimer.value = setTimeout(async () => {
+      await storeAuth.checkEmailAvailability(email)
+    }, 350)
+  },
+)
+
+onBeforeUnmount(() => {
+  if (!emailCheckTimer.value) return
+  clearTimeout(emailCheckTimer.value)
+  emailCheckTimer.value = null
 })
 </script>
 
@@ -162,11 +203,23 @@ onMounted(() => {
           required
         />
 
-          <ButtonComponent :is-dark="isDark" type="submit" variant="solid" :full-width="true">
+          <ButtonComponent
+            :is-dark="isDark"
+            type="submit"
+            variant="solid"
+            :full-width="true"
+            :disabled="registerSubmitting || checkEmailSubmitting || !controlCanSubmit"
+          >
             {{ registerSubmitting ? 'Registrando...' : 'Registrar cuenta' }}
           </ButtonComponent>
         </form>
-        <p v-if="errorMessage" class="mt-3 text-sm text-rose-400">
+        <p v-if="checkEmailSubmitting" class="mt-3 text-sm" :class="isDark ? 'text-cyan-300' : 'text-cyan-700'">
+          Validando disponibilidad del correo...
+        </p>
+        <p v-else-if="emailAvailable === false" class="mt-3 text-sm text-rose-400">
+          El correo ya esta registrado.
+        </p>
+        <p v-else-if="errorMessage" class="mt-3 text-sm text-rose-400">
           {{ errorMessage }}
         </p>
       </section>

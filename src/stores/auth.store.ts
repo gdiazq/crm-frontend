@@ -4,6 +4,7 @@ import axios from 'axios'
 import { axiosInstance } from '@/config'
 import type {
   AlertsCore,
+  AuthCheckEmailResponse,
   AuthLoginPayload,
   AuthLoginResponse,
   AuthRegisterPayload,
@@ -78,6 +79,7 @@ export const useStoreAuth = defineStore('auth', () => {
   const loginSubmitting = ref(false)
   const registerSubmitting = ref(false)
   const verifySubmitting = ref(false)
+  const checkEmailSubmitting = ref(false)
   const loginError = ref(false)
   const messageAlert = ref<AlertsCore>({ ...initialAlert })
   const successMessage = ref<string | null>(null)
@@ -85,6 +87,7 @@ export const useStoreAuth = defineStore('auth', () => {
   const errorBack = ref<unknown | null>(null)
   const loadingUser = ref(false)
   const pendingVerifyEmail = ref<string | null>(sessionStorage.getItem(PENDING_VERIFY_EMAIL_KEY))
+  const emailAvailable = ref<boolean | null>(null)
 
   const setSession = (data: AuthLoginResponse) => {
     user.value = data.user
@@ -215,6 +218,26 @@ export const useStoreAuth = defineStore('auth', () => {
     }
   }
 
+  const checkEmailAvailability = async (email: string) => {
+    try {
+      checkEmailSubmitting.value = true
+      emailAvailable.value = null
+
+      const { data } = await axiosInstance.get<AuthCheckEmailResponse>('/auth/check-email', {
+        params: { email },
+      })
+
+      emailAvailable.value = data.available
+      return data.available
+    } catch (error) {
+      errorBack.value = error
+      emailAvailable.value = null
+      return null
+    } finally {
+      checkEmailSubmitting.value = false
+    }
+  }
+
   const verifyEmail = async (payload: AuthVerifyEmailPayload) => {
     try {
       verifySubmitting.value = true
@@ -338,6 +361,7 @@ export const useStoreAuth = defineStore('auth', () => {
     loginSubmitting,
     registerSubmitting,
     verifySubmitting,
+    checkEmailSubmitting,
     loginError,
     messageAlert,
     successMessage,
@@ -345,10 +369,12 @@ export const useStoreAuth = defineStore('auth', () => {
     errorBack,
     loadingUser,
     pendingVerifyEmail,
+    emailAvailable,
     hydrate,
     getUserConfig,
     login,
     register,
+    checkEmailAvailability,
     verifyEmail,
     getCurrentUser,
     reset,

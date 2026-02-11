@@ -25,6 +25,10 @@ export interface AuthVerifyEmailPayload {
   code: string
 }
 
+export interface AuthCheckEmailResponse {
+  available: boolean
+}
+
 export interface AuthLoginResponse {
   access_token: string
   refresh_token: string
