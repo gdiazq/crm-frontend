@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { ButtonComponent, FooterComponent, InputComponent, PasswordInputComponent, ThemeToggle } from '@/components'
+import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle } from '@/components'
 import { useStoreAuth, useStoreTheme } from '@/stores'
 
 const router = useRouter()
@@ -18,17 +18,10 @@ const form = ref({
   lastName: '',
   phoneNumber: '',
   email: '',
-  password: '',
-  confirmPassword: '',
 })
 
 const controlIsValidForm = computed(() => {
-  const { confirmPassword, ...payload } = form.value
-  return Object.values(payload).every((value) => Boolean(value))
-})
-
-const controlPasswordMismatch = computed(() => {
-  return form.value.confirmPassword.length > 0 && form.value.password !== form.value.confirmPassword
+  return Object.values(form.value).every((value) => Boolean(value))
 })
 
 const handleUsernameValue = (value: string) => {
@@ -51,14 +44,6 @@ const handleEmailValue = (value: string) => {
   form.value.email = value
 }
 
-const handlePasswordValue = (value: string) => {
-  form.value.password = value
-}
-
-const handleConfirmPasswordValue = (value: string) => {
-  form.value.confirmPassword = value
-}
-
 const handleMessageAlert = (message: string) => {
   errorMessage.value = message
 }
@@ -69,22 +54,20 @@ const submitForm = async () => {
     return
   }
 
-  if (controlPasswordMismatch.value) {
-    handleMessageAlert('Las contraseñas no coinciden.')
-    return
-  }
-
   const success = await storeAuth.register({
     username: form.value.username,
     email: form.value.email,
-    password: form.value.password,
     firstName: form.value.firstName,
     lastName: form.value.lastName,
     phoneNumber: form.value.phoneNumber,
   })
   if (success) {
-    await router.push({ name: 'Dashboard' })
+    router.push(`/verify-email?email=${encodeURIComponent(form.value.email)}`)
   }
+}
+
+const handleGoHome = () => {
+  router.push('/')
 }
 
 onMounted(() => {
@@ -114,18 +97,17 @@ onMounted(() => {
         class="w-full max-w-md rounded-2xl border p-8 shadow-2xl backdrop-blur"
         :class="isDark ? 'border-white/10 bg-slate-900/75' : 'border-slate-200 bg-white/90 shadow-slate-200/70'"
       >
-        <RouterLink
-          to="/"
+        <button
+          type="button"
           class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
           :class="isDark ? 'text-slate-300 opacity-90 focus-visible:ring-offset-slate-950' : 'text-slate-600 opacity-90 focus-visible:ring-offset-slate-50'"
+          @click="handleGoHome"
         >
           <span aria-hidden="true">←</span>
           Volver al inicio
-        </RouterLink>
+        </button>
         <h1 class="mt-4 text-balance text-2xl font-bold">Crea tu cuenta</h1>
-        <p class="mt-2 text-sm" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
-          Registra tu acceso para usar el CRM.
-        </p>
+        <p class="mt-2 text-sm" :class="isDark ? 'text-slate-300' : 'text-slate-600'">Registra tu acceso para usar el CRM.</p>
 
         <form class="mt-7 space-y-4" @submit.prevent="submitForm">
         <InputComponent
@@ -178,36 +160,12 @@ onMounted(() => {
           @update:model-value="handlePhoneNumberValue"
           required
         />
-        <PasswordInputComponent
-          v-model="form.password"
-          :is-dark="isDark"
-          label="Contraseña"
-          :minlength="6"
-          autocomplete="new-password"
-          placeholder="••••••••"
-          required
-          @update:model-value="handlePasswordValue"
-        />
-
-        <PasswordInputComponent
-          v-model="form.confirmPassword"
-          :is-dark="isDark"
-          label="Confirmar contraseña"
-          :minlength="6"
-          autocomplete="new-password"
-          placeholder="••••••••"
-          required
-          @update:model-value="handleConfirmPasswordValue"
-        />
 
           <ButtonComponent :is-dark="isDark" type="submit" variant="solid" :full-width="true">
             {{ registerSubmitting ? 'Registrando...' : 'Registrar cuenta' }}
           </ButtonComponent>
         </form>
-        <p v-if="controlPasswordMismatch" class="mt-3 text-sm text-rose-400">
-          Las contraseñas no coinciden.
-        </p>
-        <p v-else-if="errorMessage" class="mt-3 text-sm text-rose-400">
+        <p v-if="errorMessage" class="mt-3 text-sm text-rose-400">
           {{ errorMessage }}
         </p>
       </section>

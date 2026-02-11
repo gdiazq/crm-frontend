@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useStoreTheme } from '@/stores'
 
+const router = useRouter()
 const storeTheme = useStoreTheme()
 const slideNotificaciones = ref(false)
 
@@ -12,6 +14,18 @@ const toggleNotificaciones = (event?: Event) => {
 
 const handleCloseNotificaciones = () => {
   slideNotificaciones.value = false
+}
+
+const handleGoHome = () => {
+  router.push('/')
+}
+
+const handleGoDashboard = () => {
+  router.push('/dashboard')
+}
+
+const handleGoLogout = () => {
+  router.push('/logout')
 }
 </script>
 
@@ -29,27 +43,30 @@ const handleCloseNotificaciones = () => {
       >
         <p class="text-sm font-semibold uppercase tracking-wide opacity-70">Menu privado</p>
         <nav class="mt-6 space-y-2 text-sm">
-          <RouterLink
-            to="/"
+          <button
+            type="button"
             class="block rounded-lg px-3 py-2 hover:bg-slate-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
-            :class="storeTheme.isDark ? 'focus-visible:ring-offset-slate-900' : 'focus-visible:ring-offset-white'"
+            :class="[storeTheme.isDark ? 'focus-visible:ring-offset-slate-900' : 'focus-visible:ring-offset-white', 'w-full text-left']"
+            @click="handleGoHome"
           >
             Inicio
-          </RouterLink>
-          <RouterLink
-            to="/dashboard"
+          </button>
+          <button
+            type="button"
             class="block rounded-lg px-3 py-2 hover:bg-slate-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
-            :class="storeTheme.isDark ? 'focus-visible:ring-offset-slate-900' : 'focus-visible:ring-offset-white'"
+            :class="[storeTheme.isDark ? 'focus-visible:ring-offset-slate-900' : 'focus-visible:ring-offset-white', 'w-full text-left']"
+            @click="handleGoDashboard"
           >
             Dashboard
-          </RouterLink>
-          <RouterLink
-            to="/logout"
+          </button>
+          <button
+            type="button"
             class="block rounded-lg px-3 py-2 hover:bg-slate-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
-            :class="storeTheme.isDark ? 'focus-visible:ring-offset-slate-900' : 'focus-visible:ring-offset-white'"
+            :class="[storeTheme.isDark ? 'focus-visible:ring-offset-slate-900' : 'focus-visible:ring-offset-white', 'w-full text-left']"
+            @click="handleGoLogout"
           >
             Salir
-          </RouterLink>
+          </button>
         </nav>
       </aside>
 

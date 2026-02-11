@@ -59,7 +59,7 @@ const submitForm = async () => {
     } else {
       localStorage.removeItem('rememberEmail')
     }
-    await router.push({ name: 'Dashboard' })
+    router.push('/dashboard')
   }
 }
 
@@ -79,6 +79,10 @@ const handleMicrosoftLogin = () => {
     variant: 'info',
     message: 'Login con Microsoft estara disponible pronto.',
   }
+}
+
+const handleGoHome = () => {
+  router.push('/')
 }
 
 onMounted(() => {
@@ -113,14 +117,15 @@ onMounted(() => {
         class="w-full max-w-md rounded-2xl border p-8 shadow-2xl backdrop-blur"
         :class="isDark ? 'border-white/10 bg-slate-900/75' : 'border-slate-200 bg-white/90 shadow-slate-200/70'"
       >
-        <RouterLink
-          to="/"
+        <button
+          type="button"
           class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
           :class="isDark ? 'text-slate-300 opacity-90 focus-visible:ring-offset-slate-950' : 'text-slate-600 opacity-90 focus-visible:ring-offset-slate-50'"
+          @click="handleGoHome"
         >
           <span aria-hidden="true">←</span>
           Volver al inicio
-        </RouterLink>
+        </button>
 
         <div class="mt-4 text-center">
           <h2 class="mt-4 text-balance text-2xl font-bold">Hola, inicia sesion</h2>

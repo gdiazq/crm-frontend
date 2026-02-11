@@ -5,6 +5,7 @@ import { handleAuthentication } from '@/middlewares/auth.middleware'
 
 import LoginView from '@/views/public/LoginView.vue'
 import RegisterView from '@/views/public/RegisterView.vue'
+import VerifyEmailView from '@/views/public/VerifyEmailView.vue'
 import LogoutView from '@/views/public/LogoutView.vue'
 import HomeView from '@/views/HomeView.vue'
 import DashboardView from '@/views/private/DashboardView.vue'
@@ -37,6 +38,20 @@ const routes: RouteRecordRaw[] = [
       permissionType: 'canRead',
       requiresPermissions: false,
       module: 'Register',
+      parent: '',
+    },
+  },
+  {
+    path: '/verify-email',
+    name: 'verify-email',
+    component: VerifyEmailView,
+    meta: {
+      title: 'Verificar correo',
+      layout: 'LayoutPublicDefault',
+      requiresAuth: false,
+      permissionType: 'canRead',
+      requiresPermissions: false,
+      module: 'VerifyEmail',
       parent: '',
     },
   },

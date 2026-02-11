@@ -15,10 +15,14 @@ export interface AuthLoginPayload {
 export interface AuthRegisterPayload {
   username: string
   email: string
-  password: string
   firstName: string
   lastName: string
   phoneNumber: string
+}
+
+export interface AuthVerifyEmailPayload {
+  email: string
+  code: string
 }
 
 export interface AuthLoginResponse {

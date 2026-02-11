@@ -7,6 +7,7 @@ import type {
   AuthLoginPayload,
   AuthLoginResponse,
   AuthRegisterPayload,
+  AuthVerifyEmailPayload,
   AuthUser,
   ModulePermission,
   UserAuthConfig,
@@ -49,6 +50,7 @@ export const useStoreAuth = defineStore('auth', () => {
 
   const loginSubmitting = ref(false)
   const registerSubmitting = ref(false)
+  const verifySubmitting = ref(false)
   const loginError = ref(false)
   const messageAlert = ref<AlertsCore>({ ...initialAlert })
   const successMessage = ref<string | null>(null)
@@ -151,15 +153,14 @@ export const useStoreAuth = defineStore('auth', () => {
       const data_ = {
         username: payload.username,
         email: payload.email,
-        password: payload.password,
         firstName: payload.firstName,
         lastName: payload.lastName,
         phoneNumber: payload.phoneNumber,
       }
 
       await axiosInstance.post('/auth/register', data_)
-      successMessage.value = 'Registro exitoso.'
-      return await login({ email: payload.email, password: payload.password })
+      successMessage.value = 'Registro exitoso. Revisa tu correo para verificar tu cuenta.'
+      return true
     } catch (error) {
       errorBack.value = error
       let message = 'No se pudo completar el registro.'
@@ -179,6 +180,38 @@ export const useStoreAuth = defineStore('auth', () => {
       return false
     } finally {
       registerSubmitting.value = false
+    }
+  }
+
+  const verifyEmail = async (payload: AuthVerifyEmailPayload) => {
+    try {
+      verifySubmitting.value = true
+      loginError.value = false
+      errorMessage.value = null
+      successMessage.value = null
+
+      await axiosInstance.post('/auth/verify-email', payload)
+      successMessage.value = 'Correo verificado correctamente. Ya puedes iniciar sesion.'
+      return true
+    } catch (error) {
+      errorBack.value = error
+      let message = 'No se pudo verificar el correo.'
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status
+        if (status === 400) message = 'Codigo invalido o expirado.'
+        if (status === 404) message = 'No se encontro una cuenta para ese correo.'
+      }
+
+      messageAlert.value = {
+        icon: 'fa-solid fa-triangle-exclamation',
+        variant: 'error',
+        message,
+      }
+      errorMessage.value = message
+      return false
+    } finally {
+      verifySubmitting.value = false
     }
   }
 
@@ -265,6 +298,7 @@ export const useStoreAuth = defineStore('auth', () => {
     isAuthenticated,
     loginSubmitting,
     registerSubmitting,
+    verifySubmitting,
     loginError,
     messageAlert,
     successMessage,
@@ -275,6 +309,7 @@ export const useStoreAuth = defineStore('auth', () => {
     getUserConfig,
     login,
     register,
+    verifyEmail,
     getCurrentUser,
     reset,
     logout,

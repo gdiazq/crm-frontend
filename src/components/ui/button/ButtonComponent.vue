@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { RouterLink } from 'vue-router'
-import type { RouteLocationRaw } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 const props = withDefaults(
   defineProps<{
     isDark: boolean
-    to?: RouteLocationRaw
+    to?: string
     type?: 'button' | 'submit' | 'reset'
     variant?: 'solid' | 'outline'
     fullWidth?: boolean
@@ -20,7 +19,12 @@ const props = withDefaults(
   },
 )
 
-const componentTag = computed(() => (props.to ? RouterLink : 'button'))
+const router = useRouter()
+
+const handleClick = () => {
+  if (!props.to || props.disabled) return
+  router.push(props.to)
+}
 
 const classes = computed(() => {
   const base =
@@ -41,7 +45,7 @@ const classes = computed(() => {
 </script>
 
 <template>
-  <component :is="componentTag" :to="to" :type="to ? undefined : type" :disabled="disabled" :class="classes">
+  <button :type="type" :disabled="disabled" :class="classes" @click="handleClick">
     <slot />
-  </component>
+  </button>
 </template>
