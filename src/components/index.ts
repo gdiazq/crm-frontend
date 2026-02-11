@@ -7,6 +7,7 @@ import KpiPanel from './frontpage/KpiPanel.vue'
 import ButtonComponent from './ui/button/ButtonComponent.vue'
 import InputComponent from './ui/input/InputComponent.vue'
 import PasswordInputComponent from './ui/input/PasswordInputComponent.vue'
+import VerificationCodeInputComponent from './ui/input/VerificationCodeInputComponent.vue'
 import SelectComponent from './ui/select/SelectComponent.vue'
 
 export {
@@ -19,5 +20,6 @@ export {
   ButtonComponent,
   InputComponent,
   PasswordInputComponent,
+  VerificationCodeInputComponent,
   SelectComponent,
 }

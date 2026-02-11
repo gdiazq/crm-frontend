@@ -1,29 +1,23 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle } from '@/components'
+import { ButtonComponent, FooterComponent, ThemeToggle, VerificationCodeInputComponent } from '@/components'
 import { useStoreAuth, useStoreTheme } from '@/stores'
 
-const route = useRoute()
 const router = useRouter()
 const storeAuth = useStoreAuth()
 const storeTheme = useStoreTheme()
 const { isDark } = storeToRefs(storeTheme)
-const { verifySubmitting, errorMessage, successMessage } = storeToRefs(storeAuth)
+const { verifySubmitting, errorMessage, successMessage, pendingVerifyEmail } = storeToRefs(storeAuth)
 
 const form = ref({
-  email: '',
   code: '',
 })
 
 const controlIsValidForm = computed(() => {
-  return Object.values(form.value).every((value) => Boolean(value))
+  return Boolean(pendingVerifyEmail.value && form.value.code)
 })
-
-const handleEmailValue = (value: string) => {
-  form.value.email = value
-}
 
 const handleCodeValue = (value: string) => {
   form.value.code = value
@@ -35,11 +29,11 @@ const handleMessageAlert = (message: string) => {
 
 const submitForm = async () => {
   if (!controlIsValidForm.value) {
-    handleMessageAlert('Debes completar correo y codigo.')
+    handleMessageAlert('No se encontro el correo a verificar o falta el codigo.')
     return
   }
 
-  const success = await storeAuth.verifyEmail(form.value)
+  const success = await storeAuth.verifyEmail({ email: pendingVerifyEmail.value || '', code: form.value.code })
   if (success) {
     router.push('/login')
   }
@@ -51,10 +45,7 @@ const handleGoLogin = () => {
 
 onMounted(() => {
   storeTheme.initTheme()
-  const queryEmail = route.query.email
-  if (typeof queryEmail === 'string') {
-    handleEmailValue(queryEmail)
-  }
+  if (!pendingVerifyEmail.value) handleMessageAlert('No se encontro el correo a verificar. Vuelve a registrarte.')
 })
 </script>
 
@@ -96,26 +87,7 @@ onMounted(() => {
         </p>
 
         <form class="mt-7 space-y-4" @submit.prevent="submitForm">
-          <InputComponent
-            v-model.trim="form.email"
-            :is-dark="isDark"
-            label="Correo"
-            type="email"
-            autocomplete="email"
-            placeholder="tu@empresa.com"
-            @update:model-value="handleEmailValue"
-            required
-          />
-          <InputComponent
-            v-model.trim="form.code"
-            :is-dark="isDark"
-            label="Codigo de verificacion"
-            type="text"
-            autocomplete="one-time-code"
-            placeholder="123456"
-            @update:model-value="handleCodeValue"
-            required
-          />
+          <VerificationCodeInputComponent v-model="form.code" :is-dark="isDark" @update:model-value="handleCodeValue" />
 
           <ButtonComponent :is-dark="isDark" type="submit" variant="solid" :full-width="true" :disabled="verifySubmitting">
             {{ verifySubmitting ? 'Verificando...' : 'Verificar correo' }}

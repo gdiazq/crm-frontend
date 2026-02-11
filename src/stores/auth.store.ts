@@ -21,6 +21,7 @@ const USER_KEY = 'authUser'
 const PERMISSIONS_KEY = 'permissions'
 const CONFIG_KEY = 'config'
 const MENU_KEY = 'menu'
+const PENDING_VERIFY_EMAIL_KEY = 'pendingVerifyEmail'
 
 const initialUserConfig: UserAuthConfig = {
   darkTheme: false,
@@ -33,6 +34,32 @@ const initialAlert: AlertsCore = {
 }
 
 type PermissionType = 'canRead' | 'canCreate' | 'canUpdate' | 'canDelete'
+
+const hasStringProp = (value: object, key: string) => {
+  return typeof Reflect.get(value, key) === 'string'
+}
+
+const isAuthUser = (value: unknown): value is AuthUser => {
+  if (typeof value !== 'object' || value === null) return false
+
+  return (
+    typeof Reflect.get(value, 'id') === 'number' &&
+    hasStringProp(value, 'username') &&
+    hasStringProp(value, 'email') &&
+    hasStringProp(value, 'first_name') &&
+    hasStringProp(value, 'last_name') &&
+    Array.isArray(Reflect.get(value, 'roles'))
+  )
+}
+
+const isModulePermissionArray = (value: unknown): value is ModulePermission[] => {
+  if (!Array.isArray(value)) return false
+
+  return value.every((item) => {
+    if (typeof item !== 'object' || item === null) return false
+    return hasStringProp(item, 'module')
+  })
+}
 
 export const useStoreAuth = defineStore('auth', () => {
   const user = ref<AuthUser | null>(null)
@@ -57,6 +84,7 @@ export const useStoreAuth = defineStore('auth', () => {
   const errorMessage = ref<string | null>(null)
   const errorBack = ref<unknown | null>(null)
   const loadingUser = ref(false)
+  const pendingVerifyEmail = ref<string | null>(sessionStorage.getItem(PENDING_VERIFY_EMAIL_KEY))
 
   const setSession = (data: AuthLoginResponse) => {
     user.value = data.user
@@ -75,10 +103,12 @@ export const useStoreAuth = defineStore('auth', () => {
     const token = localStorage.getItem(ACCESS_TOKEN_KEY)
     const savedUser = localStorage.getItem(USER_KEY)
     const savedPermissions = localStorage.getItem(PERMISSIONS_KEY)
+    const parsedUser: unknown = savedUser ? JSON.parse(savedUser) : null
+    const parsedPermissions: unknown = savedPermissions ? JSON.parse(savedPermissions) : null
 
     isAuthenticated.value = Boolean(token)
-    user.value = savedUser ? (JSON.parse(savedUser) as AuthUser) : null
-    permissions.value = savedPermissions ? (JSON.parse(savedPermissions) as ModulePermission[]) : []
+    user.value = isAuthUser(parsedUser) ? parsedUser : null
+    permissions.value = isModulePermissionArray(parsedPermissions) ? parsedPermissions : []
 
     return isAuthenticated.value
   }
@@ -159,6 +189,8 @@ export const useStoreAuth = defineStore('auth', () => {
       }
 
       await axiosInstance.post('/auth/register', data_)
+      pendingVerifyEmail.value = payload.email
+      sessionStorage.setItem(PENDING_VERIFY_EMAIL_KEY, payload.email)
       successMessage.value = 'Registro exitoso. Revisa tu correo para verificar tu cuenta.'
       return true
     } catch (error) {
@@ -191,6 +223,8 @@ export const useStoreAuth = defineStore('auth', () => {
       successMessage.value = null
 
       await axiosInstance.post('/auth/verify-email', payload)
+      pendingVerifyEmail.value = null
+      sessionStorage.removeItem(PENDING_VERIFY_EMAIL_KEY)
       successMessage.value = 'Correo verificado correctamente. Ya puedes iniciar sesion.'
       return true
     } catch (error) {
@@ -261,6 +295,11 @@ export const useStoreAuth = defineStore('auth', () => {
     localStorage.removeItem(EXPIRES_IN_KEY)
   }
 
+  const setPendingVerifyEmail = (email: string) => {
+    pendingVerifyEmail.value = email
+    sessionStorage.setItem(PENDING_VERIFY_EMAIL_KEY, email)
+  }
+
   const handleSidebarCollapse = () => {
     sidebar.toggleCollapse = !sidebar.toggleCollapse
   }
@@ -305,6 +344,7 @@ export const useStoreAuth = defineStore('auth', () => {
     errorMessage,
     errorBack,
     loadingUser,
+    pendingVerifyEmail,
     hydrate,
     getUserConfig,
     login,
@@ -313,6 +353,7 @@ export const useStoreAuth = defineStore('auth', () => {
     getCurrentUser,
     reset,
     logout,
+    setPendingVerifyEmail,
     handleSidebarCollapse,
     handleSidebarMobile,
     darkThemeToggle,

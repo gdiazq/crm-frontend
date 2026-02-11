@@ -45,7 +45,11 @@ export const useStoreTheme = defineStore('theme', () => {
       applyThemeClass(isDark.value)
       isInitialized.value = true
     } catch (error) {
-      errorBack.value = error as Error
+      if (error instanceof Error) {
+        errorBack.value = error
+      } else {
+        errorBack.value = new Error('Unknown theme initialization error')
+      }
     }
   }
 

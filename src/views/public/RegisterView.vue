@@ -62,7 +62,8 @@ const submitForm = async () => {
     phoneNumber: form.value.phoneNumber,
   })
   if (success) {
-    router.push(`/verify-email?email=${encodeURIComponent(form.value.email)}`)
+    storeAuth.setPendingVerifyEmail(form.value.email)
+    router.push('/verify-email')
   }
 }
 
