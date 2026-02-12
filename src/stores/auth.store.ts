@@ -7,16 +7,11 @@ import type {
   AlertsCore,
   AuthCheckEmailResponse,
   AuthLoginPayload,
-  AuthLoginResponse,
   AuthRegisterPayload,
   AuthVerifyEmailPayload,
   AuthUser,
   ModulePermission,
 } from '@/interfaces'
-
-// One-time cleanup of stale localStorage keys from previous versions
-const staleKeys = ['crm-auth', 'tokenType', 'expiresIn', 'authUser', 'permissions', 'config', 'menu']
-staleKeys.forEach((key) => localStorage.removeItem(key))
 
 const initialAlert: AlertsCore = {
   icon: 'fa-solid fa-circle-info',
@@ -50,13 +45,6 @@ export const useStoreAuth = defineStore('auth', () => {
   const pendingVerifyEmail = ref<string | null>(authSessionStorage.getPendingVerifyEmail())
   const emailAvailable = ref<boolean | null>(null)
 
-  const setSession = (data: AuthLoginResponse) => {
-    user.value = data.user
-    permissions.value = data.modules || []
-
-    authSessionStorage.setAuthTokens(data)
-  }
-
   const getUserConfig = async () => {
     try {
       const response = await fetch('/db/config/config.json')
@@ -80,9 +68,9 @@ export const useStoreAuth = defineStore('auth', () => {
         password: credentials.password,
       }
 
-      const { data } = await axiosInstance.post<AuthLoginResponse>('/auth/login', payload)
-
-      setSession(data)
+      const { data } = await axiosInstance.post<{ user: AuthUser; modules?: ModulePermission[] }>('/auth/login', payload)
+      user.value = data.user
+      permissions.value = data.modules || []
       await getUserConfig()
       successMessage.value = 'Inicio de sesion exitoso.'
       return true
@@ -210,12 +198,6 @@ export const useStoreAuth = defineStore('auth', () => {
     loadingUser.value = true
 
     try {
-      const token = authSessionStorage.getAccessToken()
-      if (!token) {
-        user.value = null
-        return
-      }
-
       const { data } = await axiosInstance.get<{ user: AuthUser; modules?: ModulePermission[] }>('/auth/me')
       user.value = data.user
       permissions.value = data.modules || []
@@ -236,8 +218,12 @@ export const useStoreAuth = defineStore('auth', () => {
   }
 
   const logout = async () => {
+    try {
+      await axiosInstance.post('/auth/logout')
+    } catch (error) {
+      errorBack.value = error
+    }
     reset()
-    authSessionStorage.clearAuthSession()
   }
 
   const setPendingVerifyEmail = (email: string) => {

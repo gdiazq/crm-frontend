@@ -7,8 +7,8 @@ const router = useRouter()
 const storeAuth = useStoreAuth()
 
 onMounted(async () => {
-  storeAuth.logout()
-  await router.replace({ name: 'login' })
+  await storeAuth.logout()
+  await router.replace('/')
 })
 </script>
 

@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { Client } from '@stomp/stompjs'
 import axios from 'axios'
 import { axiosInstance } from '@/config'
-import { useAuthSessionStorage } from '@/composables'
 import {
   initialCounterNotification,
   initialErrorMessageNotification,
@@ -35,7 +34,6 @@ const NOTIFICATION_BASE_PATH = '/notification'
 const MAX_NOTIFICATIONS = 50
 
 let activeStompClient: Client | null = null
-const authSessionStorage = useAuthSessionStorage()
 
 const isObjectRecord = (value: unknown) => {
   return typeof value === 'object' && value !== null
@@ -95,10 +93,9 @@ const resolveWsUrl = () => {
   return ''
 }
 
-const buildConnectHeaders = (token: string | null): Record<string, string> => {
-  const headers: Record<string, string> = {}
-  if (token) headers.Authorization = `Bearer ${token}`
-  return headers
+const requestWsTicket = async () => {
+  const { data } = await axiosInstance.get<{ ticket?: string }>('/auth/ws-ticket')
+  return typeof data.ticket === 'string' ? data.ticket : ''
 }
 
 const notificationTabFilters: Record<number, (item: NotificationItem) => boolean> = {
@@ -292,7 +289,7 @@ export const useStoreNotification = defineStore('notification', {
       if (this.status !== 'idle') this.status = 'disconnected'
     },
 
-    connect(userId: number) {
+    async connect(userId: number) {
       if (!userId) return
       if (activeStompClient?.active) return
 
@@ -306,12 +303,28 @@ export const useStoreNotification = defineStore('notification', {
       this.status = 'connecting'
       this.errorMessage = null
 
-      const token = authSessionStorage.getAccessToken()
-      const connectHeaders = buildConnectHeaders(token)
+      let wsTicket = ''
+      try {
+        wsTicket = await requestWsTicket()
+      } catch {
+        this.status = 'error'
+        this.errorMessage = 'No se pudo obtener ticket para notificaciones.'
+        return
+      }
+
+      if (!wsTicket) {
+        this.status = 'error'
+        this.errorMessage = 'Ticket de notificaciones invalido.'
+        return
+      }
+
+      const encodedTicket = encodeURIComponent(wsTicket)
+      const brokerURL = wsUrl.includes('?')
+        ? `${wsUrl}&ticket=${encodedTicket}`
+        : `${wsUrl}?ticket=${encodedTicket}`
 
       const client = new Client({
-        brokerURL: wsUrl,
-        connectHeaders,
+        brokerURL,
         reconnectDelay: 5000,
         onConnect: () => {
           this.status = 'connected'

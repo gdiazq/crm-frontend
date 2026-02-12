@@ -2,12 +2,9 @@ import axios from 'axios'
 import router from '@/router'
 
 import { APP_URL } from '@/constants'
-import { useAuthSessionStorage } from '@/composables'
-import type { AuthLoginResponse } from '@/interfaces'
 
-type PendingRequestResolver = (token: string | null) => void
+type PendingRequestResolver = (success: boolean) => void
 
-const authSessionStorage = useAuthSessionStorage()
 let isRefreshingToken = false
 let pendingRequests: PendingRequestResolver[] = []
 
@@ -20,8 +17,8 @@ const isAuthExpiredStatus = (status?: number) => {
   return status === 401 || status === 403
 }
 
-const resolvePendingRequests = (token: string | null) => {
-  pendingRequests.forEach((resolver) => resolver(token))
+const resolvePendingRequests = (success: boolean) => {
+  pendingRequests.forEach((resolver) => resolver(success))
   pendingRequests = []
 }
 
@@ -30,16 +27,7 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  //withCredentials: true
-})
-
-// Request interceptor
-axiosInstance.interceptors.request.use(function (config) {
-  const token = authSessionStorage.getAccessToken()
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-}, function (error) {
-  return Promise.reject(error)
+  withCredentials: true,
 })
 
 // Response interceptor
@@ -59,16 +47,10 @@ axiosInstance.interceptors.response.use(function (response) {
     return Promise.reject(error)
   }
 
-  const refreshToken = authSessionStorage.getRefreshToken()
-  if (!refreshToken) {
-    router.push('/logout')
-    return Promise.reject(error)
-  }
-
   if (isRefreshingToken) {
     return new Promise((resolve, reject) => {
-      pendingRequests.push((token) => {
-        if (!token) {
+      pendingRequests.push((success) => {
+        if (!success) {
           reject(error)
           return
         }
@@ -81,15 +63,16 @@ axiosInstance.interceptors.response.use(function (response) {
   isRefreshingToken = true
 
   try {
-    const { data } = await axios.post<AuthLoginResponse>(`${APP_URL}/auth/refresh`, {
-      refreshToken,
+    await axios.post(`${APP_URL}/auth/refresh`, null, {
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'application/json',
+      },
     })
-
-    authSessionStorage.setAuthTokens(data)
-    resolvePendingRequests(data.access_token)
+    resolvePendingRequests(true)
     return axiosInstance(originalRequest)
   } catch (refreshError) {
-    resolvePendingRequests(null)
+    resolvePendingRequests(false)
     router.push('/logout')
     return Promise.reject(refreshError)
   } finally {
