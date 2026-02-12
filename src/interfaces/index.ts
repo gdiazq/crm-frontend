@@ -10,6 +10,16 @@ import type {
   ModulePermission,
   UserAuthConfig,
 } from './auth/auth.interface'
+import type {
+  IncomingNotificationPayload,
+  NotificationApiItem,
+  NotificationPagedFilters,
+  NotificationCountResponse,
+  NotificationConnectionStatus,
+  NotificationPagedResponse,
+  NotificationItem,
+  NotificationVariant,
+} from './notification/notification.interface'
 
 export type {
   CrmFeature,
@@ -24,4 +34,12 @@ export type {
   AuthCheckEmailResponse,
   ModulePermission,
   UserAuthConfig,
+  NotificationVariant,
+  NotificationConnectionStatus,
+  NotificationItem,
+  NotificationCountResponse,
+  NotificationPagedResponse,
+  NotificationApiItem,
+  IncomingNotificationPayload,
+  NotificationPagedFilters,
 }
