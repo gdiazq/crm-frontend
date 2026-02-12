@@ -8,7 +8,6 @@ import type {
   AuthVerifyEmailPayload,
   AuthUser,
   ModulePermission,
-  UserAuthConfig,
 } from './auth/auth.interface'
 import type {
   IncomingNotificationPayload,
@@ -33,7 +32,6 @@ export type {
   AlertsCore,
   AuthCheckEmailResponse,
   ModulePermission,
-  UserAuthConfig,
   NotificationVariant,
   NotificationConnectionStatus,
   NotificationItem,

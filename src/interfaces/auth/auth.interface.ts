@@ -51,7 +51,3 @@ export interface ModulePermission {
   canUpdate?: boolean
   canDelete?: boolean
 }
-
-export interface UserAuthConfig {
-  darkTheme: boolean
-}

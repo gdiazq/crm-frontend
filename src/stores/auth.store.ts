@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { reactive, ref } from 'vue'
 import axios from 'axios'
 import { axiosInstance } from '@/config'
+import { useAuthSessionStorage } from '@/composables'
 import type {
   AlertsCore,
   AuthCheckEmailResponse,
@@ -11,22 +12,11 @@ import type {
   AuthVerifyEmailPayload,
   AuthUser,
   ModulePermission,
-  UserAuthConfig,
 } from '@/interfaces'
 
-const ACCESS_TOKEN_KEY = 'authToken'
-const REFRESH_TOKEN_KEY = 'refreshToken'
-const TOKEN_TYPE_KEY = 'tokenType'
-const EXPIRES_IN_KEY = 'expiresIn'
-const USER_KEY = 'authUser'
-const PERMISSIONS_KEY = 'permissions'
-const CONFIG_KEY = 'config'
-const MENU_KEY = 'menu'
-const PENDING_VERIFY_EMAIL_KEY = 'pendingVerifyEmail'
-
-const initialUserConfig: UserAuthConfig = {
-  darkTheme: false,
-}
+// One-time cleanup of stale localStorage keys from previous versions
+const staleKeys = ['crm-auth', 'tokenType', 'expiresIn', 'authUser', 'permissions', 'config', 'menu']
+staleKeys.forEach((key) => localStorage.removeItem(key))
 
 const initialAlert: AlertsCore = {
   icon: 'fa-solid fa-circle-info',
@@ -36,40 +26,11 @@ const initialAlert: AlertsCore = {
 
 type PermissionType = 'canRead' | 'canCreate' | 'canUpdate' | 'canDelete'
 
-const hasStringProp = (value: object, key: string) => {
-  return typeof Reflect.get(value, key) === 'string'
-}
-
-const isAuthUser = (value: unknown): value is AuthUser => {
-  if (typeof value !== 'object' || value === null) return false
-
-  return (
-    typeof Reflect.get(value, 'id') === 'number' &&
-    hasStringProp(value, 'username') &&
-    hasStringProp(value, 'email') &&
-    hasStringProp(value, 'first_name') &&
-    hasStringProp(value, 'last_name') &&
-    Array.isArray(Reflect.get(value, 'roles'))
-  )
-}
-
-const isModulePermissionArray = (value: unknown): value is ModulePermission[] => {
-  if (!Array.isArray(value)) return false
-
-  return value.every((item) => {
-    if (typeof item !== 'object' || item === null) return false
-    return hasStringProp(item, 'module')
-  })
-}
-
 export const useStoreAuth = defineStore('auth', () => {
+  const authSessionStorage = useAuthSessionStorage()
   const user = ref<AuthUser | null>(null)
   const permissions = ref<ModulePermission[]>([])
-  const config = ref<UserAuthConfig>(
-    JSON.parse(localStorage.getItem(CONFIG_KEY) || 'null') || { ...initialUserConfig },
-  )
-  const menu = ref(JSON.parse(localStorage.getItem(MENU_KEY) || 'null'))
-  const isAuthenticated = ref(false)
+  const menu = ref(null)
 
   const sidebar = reactive({
     toggleMobile: false,
@@ -86,34 +47,14 @@ export const useStoreAuth = defineStore('auth', () => {
   const errorMessage = ref<string | null>(null)
   const errorBack = ref<unknown | null>(null)
   const loadingUser = ref(false)
-  const pendingVerifyEmail = ref<string | null>(sessionStorage.getItem(PENDING_VERIFY_EMAIL_KEY))
+  const pendingVerifyEmail = ref<string | null>(authSessionStorage.getPendingVerifyEmail())
   const emailAvailable = ref<boolean | null>(null)
 
   const setSession = (data: AuthLoginResponse) => {
     user.value = data.user
     permissions.value = data.modules || []
-    isAuthenticated.value = true
 
-    localStorage.setItem(ACCESS_TOKEN_KEY, data.access_token)
-    localStorage.setItem(REFRESH_TOKEN_KEY, data.refresh_token)
-    localStorage.setItem(TOKEN_TYPE_KEY, data.token_type)
-    localStorage.setItem(EXPIRES_IN_KEY, String(data.expires_in))
-    localStorage.setItem(USER_KEY, JSON.stringify(data.user))
-    localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(permissions.value))
-  }
-
-  const hydrate = () => {
-    const token = localStorage.getItem(ACCESS_TOKEN_KEY)
-    const savedUser = localStorage.getItem(USER_KEY)
-    const savedPermissions = localStorage.getItem(PERMISSIONS_KEY)
-    const parsedUser: unknown = savedUser ? JSON.parse(savedUser) : null
-    const parsedPermissions: unknown = savedPermissions ? JSON.parse(savedPermissions) : null
-
-    isAuthenticated.value = Boolean(token)
-    user.value = isAuthUser(parsedUser) ? parsedUser : null
-    permissions.value = isModulePermissionArray(parsedPermissions) ? parsedPermissions : []
-
-    return isAuthenticated.value
+    authSessionStorage.setAuthTokens(data)
   }
 
   const getUserConfig = async () => {
@@ -122,13 +63,6 @@ export const useStoreAuth = defineStore('auth', () => {
       if (!response.ok) return
       const data = await response.json()
       menu.value = data.menu ?? null
-      if (!localStorage.getItem(CONFIG_KEY) && data.config) {
-        localStorage.setItem(CONFIG_KEY, JSON.stringify(data.config))
-        config.value = data.config
-      }
-      if (menu.value) {
-        localStorage.setItem(MENU_KEY, JSON.stringify(menu.value))
-      }
     } catch (error) {
       errorBack.value = error
     }
@@ -193,7 +127,7 @@ export const useStoreAuth = defineStore('auth', () => {
 
       await axiosInstance.post('/auth/register', data_)
       pendingVerifyEmail.value = payload.email
-      sessionStorage.setItem(PENDING_VERIFY_EMAIL_KEY, payload.email)
+      authSessionStorage.setPendingVerifyEmail(payload.email)
       successMessage.value = 'Registro exitoso. Revisa tu correo para verificar tu cuenta.'
       return true
     } catch (error) {
@@ -247,7 +181,7 @@ export const useStoreAuth = defineStore('auth', () => {
 
       await axiosInstance.post('/auth/verify-email', payload)
       pendingVerifyEmail.value = null
-      sessionStorage.removeItem(PENDING_VERIFY_EMAIL_KEY)
+      authSessionStorage.clearPendingVerifyEmail()
       successMessage.value = 'Correo verificado correctamente. Ya puedes iniciar sesion.'
       return true
     } catch (error) {
@@ -276,24 +210,19 @@ export const useStoreAuth = defineStore('auth', () => {
     loadingUser.value = true
 
     try {
-      const token = localStorage.getItem(ACCESS_TOKEN_KEY)
+      const token = authSessionStorage.getAccessToken()
       if (!token) {
         user.value = null
-        isAuthenticated.value = false
         return
       }
 
       const { data } = await axiosInstance.get<{ user: AuthUser; modules?: ModulePermission[] }>('/auth/me')
       user.value = data.user
       permissions.value = data.modules || []
-      isAuthenticated.value = true
-      localStorage.setItem(USER_KEY, JSON.stringify(data.user))
-      localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(permissions.value))
       await getUserConfig()
     } catch (error) {
       user.value = null
       permissions.value = []
-      isAuthenticated.value = false
       errorBack.value = error
     } finally {
       loadingUser.value = false
@@ -304,23 +233,16 @@ export const useStoreAuth = defineStore('auth', () => {
     user.value = null
     permissions.value = []
     menu.value = null
-    isAuthenticated.value = false
   }
 
   const logout = async () => {
     reset()
-    localStorage.removeItem(USER_KEY)
-    localStorage.removeItem(PERMISSIONS_KEY)
-    localStorage.removeItem(MENU_KEY)
-    localStorage.removeItem(ACCESS_TOKEN_KEY)
-    localStorage.removeItem(REFRESH_TOKEN_KEY)
-    localStorage.removeItem(TOKEN_TYPE_KEY)
-    localStorage.removeItem(EXPIRES_IN_KEY)
+    authSessionStorage.clearAuthSession()
   }
 
   const setPendingVerifyEmail = (email: string) => {
     pendingVerifyEmail.value = email
-    sessionStorage.setItem(PENDING_VERIFY_EMAIL_KEY, email)
+    authSessionStorage.setPendingVerifyEmail(email)
   }
 
   const handleSidebarCollapse = () => {
@@ -329,20 +251,6 @@ export const useStoreAuth = defineStore('auth', () => {
 
   const handleSidebarMobile = () => {
     sidebar.toggleMobile = !sidebar.toggleMobile
-  }
-
-  const darkThemeToggle = () => {
-    if (!config.value) return
-    config.value.darkTheme = !config.value.darkTheme
-    localStorage.setItem(CONFIG_KEY, JSON.stringify(config.value))
-  }
-
-  const changeTheme = () => {
-    if (!config.value?.darkTheme) {
-      document.documentElement.setAttribute('data-eit-theme', 'light')
-    } else {
-      document.documentElement.setAttribute('data-eit-theme', 'dark')
-    }
   }
 
   const hasPermission = (moduleName: string, permissionType: PermissionType) => {
@@ -354,10 +262,8 @@ export const useStoreAuth = defineStore('auth', () => {
   return {
     user,
     permissions,
-    config,
     menu,
     sidebar,
-    isAuthenticated,
     loginSubmitting,
     registerSubmitting,
     verifySubmitting,
@@ -370,7 +276,6 @@ export const useStoreAuth = defineStore('auth', () => {
     loadingUser,
     pendingVerifyEmail,
     emailAvailable,
-    hydrate,
     getUserConfig,
     login,
     register,
@@ -382,8 +287,6 @@ export const useStoreAuth = defineStore('auth', () => {
     setPendingVerifyEmail,
     handleSidebarCollapse,
     handleSidebarMobile,
-    darkThemeToggle,
-    changeTheme,
     hasPermission,
   }
 })

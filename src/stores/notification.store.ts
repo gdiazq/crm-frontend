@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { Client } from '@stomp/stompjs'
 import axios from 'axios'
 import { axiosInstance } from '@/config'
+import { useAuthSessionStorage } from '@/composables'
 import {
   initialCounterNotification,
   initialErrorMessageNotification,
@@ -30,11 +31,11 @@ import type {
   NotificationPagedResponse,
 } from '@/interfaces'
 
-const ACCESS_TOKEN_KEY = 'authToken'
 const NOTIFICATION_BASE_PATH = '/notification'
 const MAX_NOTIFICATIONS = 50
 
 let activeStompClient: Client | null = null
+const authSessionStorage = useAuthSessionStorage()
 
 const isObjectRecord = (value: unknown) => {
   return typeof value === 'object' && value !== null
@@ -305,7 +306,7 @@ export const useStoreNotification = defineStore('notification', {
       this.status = 'connecting'
       this.errorMessage = null
 
-      const token = localStorage.getItem(ACCESS_TOKEN_KEY)
+      const token = authSessionStorage.getAccessToken()
       const connectHeaders = buildConnectHeaders(token)
 
       const client = new Client({
