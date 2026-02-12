@@ -2,10 +2,6 @@
 import { ButtonComponent } from '@/components'
 import router from '@/router'
 
-defineProps<{
-  isDark: boolean
-}>()
-
 const handleGoRegister = () => {
   router.push('/register')
 }
@@ -18,22 +14,19 @@ const handleGoLogin = () => {
 <template>
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <div
-        class="rounded-xl p-2 ring-1"
-        :class="isDark ? 'bg-cyan-400/20 ring-cyan-300/30' : 'bg-cyan-100 ring-cyan-300/70'"
-      >
-        <span class="text-sm font-bold" :class="isDark ? 'text-cyan-300' : 'text-cyan-700'">CRM</span>
+      <div class="rounded-xl bg-cyan-100 p-2 ring-1 ring-cyan-300/70 dark:bg-cyan-400/20 dark:ring-cyan-300/30">
+        <span class="text-sm font-bold text-cyan-700 dark:text-cyan-300">CRM</span>
       </div>
-      <p class="text-sm tracking-wide" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
+      <p class="text-sm tracking-wide text-slate-600 dark:text-slate-300">
         Velocity Suite
       </p>
     </div>
 
     <div class="flex items-center gap-2">
-      <ButtonComponent :is-dark="isDark" variant="outline" @click="handleGoRegister">
+      <ButtonComponent variant="outline" @click="handleGoRegister">
         Registrar
       </ButtonComponent>
-      <ButtonComponent :is-dark="isDark" variant="outline" @click="handleGoLogin">
+      <ButtonComponent variant="outline" @click="handleGoLogin">
         Iniciar sesion
       </ButtonComponent>
     </div>

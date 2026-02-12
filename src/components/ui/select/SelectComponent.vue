@@ -6,7 +6,6 @@ interface SelectOption {
 
 withDefaults(
   defineProps<{
-    isDark: boolean
     label: string
     required?: boolean
     options: SelectOption[]
@@ -25,12 +24,7 @@ const modelValue = defineModel<string>({ default: '' })
     <select
       v-model="modelValue"
       :required="required"
-      class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-cyan-400"
-      :class="
-        isDark
-          ? 'border-slate-700 bg-slate-900 text-slate-100 focus-visible:ring-offset-slate-950'
-          : 'border-slate-300 bg-white text-slate-900 focus-visible:ring-offset-slate-50'
-      "
+      class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus-visible:ring-offset-slate-950"
     >
       <option value="" disabled>Selecciona una opcion</option>
       <option v-for="option in options" :key="option.value" :value="option.value">

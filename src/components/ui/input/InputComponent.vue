@@ -1,7 +1,6 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    isDark: boolean
     label: string
     type?: string
     placeholder?: string
@@ -29,12 +28,7 @@ const modelValue = defineModel<string>({ default: '' })
       :autocomplete="autocomplete"
       :minlength="minlength"
       :placeholder="placeholder"
-      class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-cyan-400"
-      :class="
-        isDark
-          ? 'border-slate-700 bg-slate-900 text-slate-100 placeholder:text-slate-500 focus-visible:ring-offset-slate-950'
-          : 'border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-offset-slate-50'
-      "
+      class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus-visible:ring-offset-slate-950"
     />
   </label>
 </template>

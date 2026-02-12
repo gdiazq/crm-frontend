@@ -2,14 +2,12 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { computed, ref } from 'vue'
-import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, PasswordInputComponent, ThemeToggle } from '@/components'
 import { useStoreAuth, useStoreTheme } from '@/stores'
 
 const router = useRouter()
 const storeAuth = useStoreAuth()
 const storeTheme = useStoreTheme()
-const { isDark } = storeToRefs(storeTheme)
 const form = ref({
   email: '',
   password: '',
@@ -96,31 +94,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <main
-    class="relative flex min-h-screen flex-col overflow-hidden transition-colors"
-    :class="isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'"
-  >
+  <main class="relative flex min-h-screen flex-col overflow-hidden bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
     <div class="fixed right-4 top-4 z-50">
-      <ThemeToggle :is-dark="isDark" @toggle="storeTheme.toggleTheme" />
+      <ThemeToggle />
     </div>
-    <div
-      class="pointer-events-none absolute inset-0 -z-10"
-      :class="
-        isDark
-          ? 'bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_40%),radial-gradient(circle_at_80%_20%,_rgba(14,165,233,0.12),_transparent_35%)]'
-          : 'bg-[radial-gradient(circle_at_top,_rgba(8,145,178,0.12),_transparent_45%),radial-gradient(circle_at_80%_20%,_rgba(14,116,144,0.1),_transparent_35%)]'
-      "
-    ></div>
+    <div class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(8,145,178,0.12),_transparent_45%),radial-gradient(circle_at_80%_20%,_rgba(14,116,144,0.1),_transparent_35%)] dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_40%),radial-gradient(circle_at_80%_20%,_rgba(14,165,233,0.12),_transparent_35%)]"></div>
 
     <section class="flex flex-1 items-center justify-center p-6">
-      <section
-        class="w-full max-w-md rounded-2xl border p-8 shadow-2xl backdrop-blur"
-        :class="isDark ? 'border-white/10 bg-slate-900/75' : 'border-slate-200 bg-white/90 shadow-slate-200/70'"
-      >
+      <section class="w-full max-w-md rounded-2xl border border-slate-200 bg-white/90 p-8 shadow-2xl shadow-slate-200/70 backdrop-blur dark:border-white/10 dark:bg-slate-900/75 dark:shadow-none">
         <button
           type="button"
-          class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
-          :class="isDark ? 'text-slate-300 opacity-90 focus-visible:ring-offset-slate-950' : 'text-slate-600 opacity-90 focus-visible:ring-offset-slate-50'"
+          class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-600 opacity-90 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 dark:text-slate-300 dark:focus-visible:ring-offset-slate-950"
           @click="handleGoHome"
         >
           <span aria-hidden="true">←</span>
@@ -129,7 +113,7 @@ onMounted(() => {
 
         <div class="mt-4 text-center">
           <h2 class="mt-4 text-balance text-2xl font-bold">Hola, inicia sesion</h2>
-          <p class="mt-2 text-sm" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
+          <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
             Ingresando los datos de tu cuenta corporativa
           </p>
         </div>
@@ -138,14 +122,16 @@ onMounted(() => {
           <div
             v-if="controlLoginAlert"
             class="rounded-lg border px-3 py-2 text-sm"
-            :class="isDark ? 'border-rose-400/40 bg-rose-900/20 text-rose-200' : 'border-rose-300 bg-rose-50 text-rose-700'"
+            :class="[
+              'border-rose-300 bg-rose-50 text-rose-700',
+              'dark:border-rose-400/40 dark:bg-rose-900/20 dark:text-rose-200',
+            ]"
           >
             {{ storeAuth.messageAlert.message || 'Usuario o contraseña incorrectos.' }}
           </div>
 
           <InputComponent
             v-model.trim="form.email"
-            :is-dark="isDark"
             label="Correo electrónico"
             type="text"
             autocomplete="username"
@@ -156,7 +142,6 @@ onMounted(() => {
 
           <PasswordInputComponent
             v-model="form.password"
-            :is-dark="isDark"
             label="Contraseña"
             :minlength="6"
             autocomplete="current-password"
@@ -168,12 +153,11 @@ onMounted(() => {
           <div class="flex items-center justify-between text-sm">
             <label class="inline-flex items-center gap-2">
               <input v-model="remindMe" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-400" />
-              <span :class="isDark ? 'text-slate-300' : 'text-slate-600'">Recordarme</span>
+              <span class="text-slate-600 dark:text-slate-300">Recordarme</span>
             </label>
             <button
               type="button"
-              class="font-semibold transition"
-              :class="isDark ? 'text-cyan-300 hover:text-cyan-200' : 'text-cyan-700 hover:text-cyan-800'"
+              class="font-semibold text-cyan-700 transition hover:text-cyan-800 dark:text-cyan-300 dark:hover:text-cyan-200"
               @click="handleRecovery"
             >
               ¿Olvidaste tu contraseña?
@@ -181,7 +165,6 @@ onMounted(() => {
           </div>
 
           <ButtonComponent
-            :is-dark="isDark"
             type="submit"
             variant="solid"
             :full-width="true"
@@ -191,19 +174,14 @@ onMounted(() => {
           </ButtonComponent>
 
           <div class="flex items-center gap-3 py-1">
-            <div class="h-px flex-1" :class="isDark ? 'bg-slate-700' : 'bg-slate-300'"></div>
-            <span class="text-xs uppercase tracking-wide" :class="isDark ? 'text-slate-400' : 'text-slate-500'">o</span>
-            <div class="h-px flex-1" :class="isDark ? 'bg-slate-700' : 'bg-slate-300'"></div>
+            <div class="h-px flex-1 bg-slate-300 dark:bg-slate-700"></div>
+            <span class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">o</span>
+            <div class="h-px flex-1 bg-slate-300 dark:bg-slate-700"></div>
           </div>
 
           <button
             type="button"
-            class="inline-flex w-full items-center justify-center rounded-lg border px-4 py-3 text-sm font-semibold transition"
-            :class="
-              isDark
-                ? 'border-slate-700 bg-slate-900 text-slate-100 hover:border-cyan-300/60'
-                : 'border-slate-300 bg-white text-slate-700 hover:border-cyan-500'
-            "
+            class="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-cyan-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-cyan-300/60"
             :disabled="storeAuth.loginSubmitting"
             @click="handleMicrosoftLogin"
           >
@@ -213,6 +191,6 @@ onMounted(() => {
       </section>
     </section>
 
-    <FooterComponent :is-dark="isDark" />
+    <FooterComponent />
   </main>
 </template>

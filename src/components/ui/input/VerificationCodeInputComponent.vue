@@ -3,7 +3,6 @@ import { ref, watch } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 
 const props = defineProps<{
-  isDark: boolean
   length?: number
 }>()
 
@@ -91,12 +90,7 @@ watch(
         pattern="[0-9]*"
         maxlength="1"
         autocomplete="one-time-code"
-        class="h-12 w-full rounded-lg border text-center text-lg font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-cyan-400"
-        :class="
-          isDark
-            ? 'border-slate-700 bg-slate-900 text-slate-100 placeholder:text-slate-500 focus-visible:ring-offset-slate-950'
-            : 'border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-offset-slate-50'
-        "
+        class="h-12 w-full rounded-lg border border-slate-300 bg-white text-center text-lg font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus-visible:ring-offset-slate-950"
         @input="handleInput(index, $event)"
         @keydown="handleKeydown(index, $event)"
       />
