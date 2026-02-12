@@ -1,9 +1,18 @@
 <script setup lang="ts">
 import { ButtonComponent } from '@/components'
+import router from '@/router'
 
 defineProps<{
   isDark: boolean
 }>()
+
+const handleGoRegister = () => {
+  router.push('/register')
+}
+
+const handleGoDashboard = () => {
+  router.push('/dashboard')
+}
 </script>
 
 <template>
@@ -16,10 +25,10 @@ defineProps<{
       vista clara de todo el ciclo de cliente.
     </p>
     <div class="mt-8 flex flex-wrap gap-3">
-      <ButtonComponent :is-dark="isDark" variant="solid">
+      <ButtonComponent :is-dark="isDark" variant="solid" @click="handleGoRegister">
         Solicitar demo
       </ButtonComponent>
-      <ButtonComponent :is-dark="isDark" variant="outline">
+      <ButtonComponent :is-dark="isDark" variant="outline" @click="handleGoDashboard">
         Ver dashboard
       </ButtonComponent>
     </div>

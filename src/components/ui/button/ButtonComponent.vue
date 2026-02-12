@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
 
 const props = withDefaults(
   defineProps<{
     isDark: boolean
-    to?: string
     type?: 'button' | 'submit' | 'reset'
     variant?: 'solid' | 'outline'
     fullWidth?: boolean
@@ -19,12 +17,9 @@ const props = withDefaults(
   },
 )
 
-const router = useRouter()
-
-const handleClick = () => {
-  if (!props.to || props.disabled) return
-  router.push(props.to)
-}
+const emit = defineEmits<{
+  (event: 'click'): void
+}>()
 
 const classes = computed(() => {
   const base =
@@ -45,7 +40,7 @@ const classes = computed(() => {
 </script>
 
 <template>
-  <button :type="type" :disabled="disabled" :class="classes" @click="handleClick">
+  <button :type="type" :disabled="disabled" :class="classes" @click="emit('click')">
     <slot />
   </button>
 </template>

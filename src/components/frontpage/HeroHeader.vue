@@ -1,9 +1,18 @@
 <script setup lang="ts">
 import { ButtonComponent } from '@/components'
+import router from '@/router'
 
 defineProps<{
   isDark: boolean
 }>()
+
+const handleGoRegister = () => {
+  router.push('/register')
+}
+
+const handleGoLogin = () => {
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -21,10 +30,10 @@ defineProps<{
     </div>
 
     <div class="flex items-center gap-2">
-      <ButtonComponent :is-dark="isDark" to="/register" variant="outline">
+      <ButtonComponent :is-dark="isDark" variant="outline" @click="handleGoRegister">
         Registrar
       </ButtonComponent>
-      <ButtonComponent :is-dark="isDark" to="/login" variant="outline">
+      <ButtonComponent :is-dark="isDark" variant="outline" @click="handleGoLogin">
         Iniciar sesion
       </ButtonComponent>
     </div>
