@@ -8,6 +8,7 @@ import type {
   AuthCheckEmailResponse,
   AuthCreatePasswordPayload,
   AuthLoginPayload,
+  AuthResendVerificationPayload,
   AuthRegisterPayload,
   AuthVerifyEmailResponse,
   AuthVerifyEmailPayload,
@@ -38,6 +39,7 @@ export const useStoreAuth = defineStore('auth', () => {
   const registerSubmitting = ref(false)
   const verifySubmitting = ref(false)
   const createPasswordSubmitting = ref(false)
+  const resendSubmitting = ref(false)
   const checkEmailSubmitting = ref(false)
   const loginError = ref(false)
   const messageAlert = ref<AlertsCore>({ ...initialAlert })
@@ -47,6 +49,7 @@ export const useStoreAuth = defineStore('auth', () => {
   const loadingUser = ref(false)
   let currentUserRequest: Promise<void> | null = null
   const pendingVerifyEmail = ref<string | null>(authSessionStorage.getPendingVerifyEmail())
+  const pendingVerifyPhone = ref<string | null>(authSessionStorage.getPendingVerifyPhone())
   const pendingPasswordToken = ref<string | null>(authSessionStorage.getPendingPasswordToken())
   const pendingPasswordTokenIssuedAt = ref<number | null>(authSessionStorage.getPendingPasswordTokenIssuedAt())
   const emailAvailable = ref<boolean | null>(null)
@@ -121,7 +124,9 @@ export const useStoreAuth = defineStore('auth', () => {
 
       await axiosInstance.post('/auth/register', data_)
       pendingVerifyEmail.value = payload.email
+      pendingVerifyPhone.value = payload.phoneNumber
       authSessionStorage.setPendingVerifyEmail(payload.email)
+      authSessionStorage.setPendingVerifyPhone(payload.phoneNumber)
       successMessage.value = 'Registro exitoso. Revisa tu correo para verificar tu cuenta.'
       return true
     } catch (error) {
@@ -178,7 +183,9 @@ export const useStoreAuth = defineStore('auth', () => {
       authSessionStorage.setPendingPasswordToken(data.token)
       pendingPasswordTokenIssuedAt.value = authSessionStorage.getPendingPasswordTokenIssuedAt()
       pendingVerifyEmail.value = null
+      pendingVerifyPhone.value = null
       authSessionStorage.clearPendingVerifyEmail()
+      authSessionStorage.clearPendingVerifyPhone()
       successMessage.value = 'Correo verificado correctamente.'
       return data.token
     } catch (error) {
@@ -200,6 +207,32 @@ export const useStoreAuth = defineStore('auth', () => {
       return null
     } finally {
       verifySubmitting.value = false
+    }
+  }
+
+  const resendVerification = async (payload: AuthResendVerificationPayload) => {
+    try {
+      resendSubmitting.value = true
+      errorMessage.value = null
+      successMessage.value = null
+
+      await axiosInstance.post('/auth/resend-verification', payload)
+      successMessage.value = 'Codigo reenviado correctamente. Revisa tu correo.'
+      return true
+    } catch (error) {
+      errorBack.value = error
+      let message = 'No se pudo reenviar el codigo.'
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status
+        if (status === 400) message = 'Correo invalido para reenviar el codigo.'
+        if (status === 404) message = 'No se encontro una cuenta para ese correo.'
+      }
+
+      errorMessage.value = message
+      return false
+    } finally {
+      resendSubmitting.value = false
     }
   }
 
@@ -287,6 +320,11 @@ export const useStoreAuth = defineStore('auth', () => {
     authSessionStorage.setPendingVerifyEmail(email)
   }
 
+  const setPendingVerifyPhone = (phone: string) => {
+    pendingVerifyPhone.value = phone
+    authSessionStorage.setPendingVerifyPhone(phone)
+  }
+
   const setPendingPasswordToken = (token: string) => {
     pendingPasswordToken.value = token
     authSessionStorage.setPendingPasswordToken(token)
@@ -322,6 +360,7 @@ export const useStoreAuth = defineStore('auth', () => {
     registerSubmitting,
     verifySubmitting,
     createPasswordSubmitting,
+    resendSubmitting,
     checkEmailSubmitting,
     loginError,
     messageAlert,
@@ -330,6 +369,7 @@ export const useStoreAuth = defineStore('auth', () => {
     errorBack,
     loadingUser,
     pendingVerifyEmail,
+    pendingVerifyPhone,
     pendingPasswordToken,
     pendingPasswordTokenIssuedAt,
     emailAvailable,
@@ -338,11 +378,13 @@ export const useStoreAuth = defineStore('auth', () => {
     register,
     checkEmailAvailability,
     verifyEmail,
+    resendVerification,
     createPassword,
     getCurrentUser,
     reset,
     logout,
     setPendingVerifyEmail,
+    setPendingVerifyPhone,
     setPendingPasswordToken,
     clearPendingPasswordToken,
     handleSidebarCollapse,

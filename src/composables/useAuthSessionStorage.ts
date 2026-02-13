@@ -1,5 +1,6 @@
 const storageKeys = {
   pendingVerifyEmail: 'pendingVerifyEmail',
+  pendingVerifyPhone: 'pendingVerifyPhone',
   pendingPasswordToken: 'pendingPasswordToken',
   pendingPasswordTokenIssuedAt: 'pendingPasswordTokenIssuedAt',
 }
@@ -15,6 +16,18 @@ export const useAuthSessionStorage = () => {
 
   const clearPendingVerifyEmail = () => {
     sessionStorage.removeItem(storageKeys.pendingVerifyEmail)
+  }
+
+  const setPendingVerifyPhone = (phone: string) => {
+    sessionStorage.setItem(storageKeys.pendingVerifyPhone, phone)
+  }
+
+  const getPendingVerifyPhone = () => {
+    return sessionStorage.getItem(storageKeys.pendingVerifyPhone)
+  }
+
+  const clearPendingVerifyPhone = () => {
+    sessionStorage.removeItem(storageKeys.pendingVerifyPhone)
   }
 
   const setPendingPasswordToken = (token: string) => {
@@ -43,6 +56,9 @@ export const useAuthSessionStorage = () => {
     setPendingVerifyEmail,
     getPendingVerifyEmail,
     clearPendingVerifyEmail,
+    setPendingVerifyPhone,
+    getPendingVerifyPhone,
+    clearPendingVerifyPhone,
     setPendingPasswordToken,
     getPendingPasswordToken,
     getPendingPasswordTokenIssuedAt,

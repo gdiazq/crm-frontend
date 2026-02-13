@@ -50,6 +50,11 @@ export interface AuthCheckEmailResponse {
   available: boolean
 }
 
+export interface AuthResendVerificationPayload {
+  email: string
+  phoneNumber: string
+}
+
 export interface AlertsCore {
   icon: string
   variant: 'success' | 'error' | 'warning' | 'info'

@@ -2,16 +2,19 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { ButtonComponent, FooterComponent, ThemeToggle, VerificationCodeInputComponent } from '@/components'
+import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle, VerificationCodeInputComponent } from '@/components'
 import { useStoreAuth } from '@/stores'
 
 const router = useRouter()
 const storeAuth = useStoreAuth()
-const { verifySubmitting, errorMessage, successMessage, pendingVerifyEmail } = storeToRefs(storeAuth)
+const { verifySubmitting, resendSubmitting, errorMessage, successMessage, pendingVerifyEmail, pendingVerifyPhone } = storeToRefs(storeAuth)
 
 const form = ref({
   code: '',
 })
+const resendPhone = ref('')
+const showResendModal = ref(false)
+const resendModalError = ref<string | null>(null)
 
 const controlIsValidForm = computed(() => {
   return Boolean(pendingVerifyEmail.value && form.value.code)
@@ -23,6 +26,62 @@ const handleCodeValue = (value: string) => {
 
 const handleMessageAlert = (message: string) => {
   errorMessage.value = message
+}
+
+const normalizePhone = (value: string) => {
+  return value.replace(/\s+/g, '')
+}
+
+const handleResendCode = async () => {
+  resendModalError.value = null
+
+  if (!pendingVerifyEmail.value) {
+    resendModalError.value = 'No se encontro el correo para reenviar el codigo.'
+    return
+  }
+
+  if (!pendingVerifyPhone.value) {
+    resendModalError.value = 'No se encontro el telefono de verificacion. Vuelve a registrarte.'
+    return
+  }
+
+  if (!resendPhone.value.trim()) {
+    resendModalError.value = 'Debes ingresar tu numero de telefono para reenviar el codigo.'
+    return
+  }
+
+  const inputPhone = normalizePhone(resendPhone.value)
+  const expectedPhone = normalizePhone(pendingVerifyPhone.value)
+  if (inputPhone !== expectedPhone) {
+    resendModalError.value = 'El numero de telefono no coincide con el registrado.'
+    return
+  }
+
+  const success = await storeAuth.resendVerification({
+    email: pendingVerifyEmail.value,
+    phoneNumber: resendPhone.value.trim(),
+  })
+  if (success) {
+    form.value.code = ''
+    resendPhone.value = ''
+    closeResendModal()
+    router.replace('/verify-email')
+    return
+  }
+
+  resendModalError.value = errorMessage.value || 'No se pudo reenviar el codigo.'
+  errorMessage.value = null
+}
+
+const openResendModal = () => {
+  resendPhone.value = ''
+  resendModalError.value = null
+  showResendModal.value = true
+}
+
+const closeResendModal = () => {
+  resendModalError.value = null
+  showResendModal.value = false
 }
 
 const submitForm = async () => {
@@ -72,6 +131,15 @@ onMounted(() => {
         <form class="mt-7 space-y-4" @submit.prevent="submitForm">
           <VerificationCodeInputComponent v-model="form.code" @update:model-value="handleCodeValue" />
 
+          <button
+            type="button"
+            class="text-xs font-semibold text-cyan-700 transition hover:text-cyan-800 disabled:cursor-not-allowed disabled:opacity-50 dark:text-cyan-300 dark:hover:text-cyan-200"
+            :disabled="resendSubmitting"
+            @click="openResendModal"
+          >
+            {{ resendSubmitting ? 'Reenviando codigo...' : 'Reenviar codigo' }}
+          </button>
+
           <ButtonComponent type="submit" variant="solid" :full-width="true" :disabled="verifySubmitting">
             {{ verifySubmitting ? 'Verificando...' : 'Verificar correo' }}
           </ButtonComponent>
@@ -87,5 +155,41 @@ onMounted(() => {
     </section>
 
     <FooterComponent />
+
+    <section
+      v-if="showResendModal"
+      class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 p-4"
+      @click.self="closeResendModal"
+    >
+      <section class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-slate-900">
+        <h3 class="text-lg font-semibold">Reenviar codigo</h3>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          Ingresa tu numero de telefono para confirmar el reenvio.
+        </p>
+
+        <div class="mt-4">
+          <InputComponent
+            v-model="resendPhone"
+            label="Telefono"
+            type="tel"
+            autocomplete="tel"
+            placeholder="+56912345678"
+            required
+          />
+        </div>
+        <p v-if="resendModalError" class="mt-2 text-sm text-rose-500">
+          {{ resendModalError }}
+        </p>
+
+        <div class="mt-4 flex justify-end gap-2">
+          <ButtonComponent variant="outline" :disabled="resendSubmitting" @click="closeResendModal">
+            Cancelar
+          </ButtonComponent>
+          <ButtonComponent variant="solid" :disabled="resendSubmitting" @click="handleResendCode">
+            {{ resendSubmitting ? 'Reenviando...' : 'Confirmar reenvio' }}
+          </ButtonComponent>
+        </div>
+      </section>
+    </section>
   </main>
 </template>
