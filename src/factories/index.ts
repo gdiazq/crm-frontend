@@ -1,4 +1,8 @@
 import {
+  initialCreatePasswordForm,
+  initialPasswordRequirements,
+} from './auth.factory'
+import {
   initialCounterNotification,
   initialErrorMessageNotification,
   initialLoadingNotification,
@@ -8,6 +12,8 @@ import {
 } from './notification.factory'
 
 export {
+  initialCreatePasswordForm,
+  initialPasswordRequirements,
   initialCounterNotification,
   initialNotifications,
   initialTabNotification,

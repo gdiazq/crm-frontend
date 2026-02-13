@@ -1,4 +1,9 @@
 import {
+  mapperCreatePasswordPayload,
+  mapperMissingPasswordRequirements,
+  mapperPasswordRequirements,
+} from './auth.mapper'
+import {
   mapperArchiveNotification,
   mapperMarkAsNotRead,
   mapperMarkAsRead,
@@ -13,6 +18,9 @@ import {
 } from './notification.mapper'
 
 export {
+  mapperCreatePasswordPayload,
+  mapperPasswordRequirements,
+  mapperMissingPasswordRequirements,
   mapperNotification,
   mapperNotificationFromPayload,
   mapperMarkAsRead,

@@ -35,6 +35,17 @@ export interface AuthCreatePasswordPayload {
   newPassword: string
 }
 
+export interface AuthCreatePasswordForm {
+  password: string
+  confirmPassword: string
+}
+
+export interface PasswordRequirement {
+  key: 'lowercase' | 'uppercase' | 'number' | 'specialChar' | 'minLength'
+  label: string
+  valid: boolean
+}
+
 export interface AuthCheckEmailResponse {
   available: boolean
 }

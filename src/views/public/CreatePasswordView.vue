@@ -3,6 +3,8 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, PasswordInputComponent, ThemeToggle } from '@/components'
+import { initialCreatePasswordForm } from '@/factories'
+import { mapperCreatePasswordPayload, mapperMissingPasswordRequirements, mapperPasswordRequirements } from '@/mappers'
 import { useStoreAuth } from '@/stores'
 
 const PASSWORD_TOKEN_MAX_AGE_MS = 2 * 60 * 1000
@@ -11,32 +13,14 @@ const router = useRouter()
 const storeAuth = useStoreAuth()
 const { createPasswordSubmitting, errorMessage, successMessage, pendingPasswordToken, pendingPasswordTokenIssuedAt } = storeToRefs(storeAuth)
 
-const form = ref({
-  password: '',
-  confirmPassword: '',
-})
+const form = ref({ ...initialCreatePasswordForm })
 const remainingSeconds = ref(0)
 let expirationTimer: ReturnType<typeof setTimeout> | null = null
 let countdownTimer: ReturnType<typeof setInterval> | null = null
 
-const controlHasLowercase = computed(() => /[a-z]/.test(form.value.password))
-const controlHasUppercase = computed(() => /[A-Z]/.test(form.value.password))
-const controlHasNumber = computed(() => /[0-9]/.test(form.value.password))
-const controlHasSpecialChar = computed(() => /[^A-Za-z0-9]/.test(form.value.password))
-const controlHasMinLength = computed(() => form.value.password.length >= 10)
+const passwordRequirements = computed(() => mapperPasswordRequirements(form.value.password, 10))
+const missingPasswordRequirements = computed(() => mapperMissingPasswordRequirements(passwordRequirements.value))
 const controlPasswordsMatch = computed(() => form.value.password.length > 0 && form.value.password === form.value.confirmPassword)
-const passwordRequirements = computed(() => {
-  return [
-    { label: 'Al menos 1 letra minuscula', valid: controlHasLowercase.value },
-    { label: 'Al menos 1 letra mayuscula', valid: controlHasUppercase.value },
-    { label: 'Al menos 1 numero', valid: controlHasNumber.value },
-    { label: 'Al menos 1 caracter especial', valid: controlHasSpecialChar.value },
-    { label: 'Minimo 10 caracteres', valid: controlHasMinLength.value },
-  ]
-})
-const missingPasswordRequirements = computed(() => {
-  return passwordRequirements.value.filter((requirement) => !requirement.valid).map((requirement) => requirement.label)
-})
 
 const controlIsValidForm = computed(() => {
   return (
@@ -113,10 +97,8 @@ const submitForm = async () => {
     return
   }
 
-  const success = await storeAuth.createPassword({
-    token: pendingPasswordToken.value || '',
-    newPassword: form.value.password,
-  })
+  const payload = mapperCreatePasswordPayload(pendingPasswordToken.value || '', form.value.password)
+  const success = await storeAuth.createPassword(payload)
   if (success) {
     clearTimers()
     storeAuth.reset()
