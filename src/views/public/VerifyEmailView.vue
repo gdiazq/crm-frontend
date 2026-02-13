@@ -33,7 +33,7 @@ const submitForm = async () => {
 
   const success = await storeAuth.verifyEmail({ email: pendingVerifyEmail.value || '', code: form.value.code })
   if (success) {
-    router.push('/login')
+    router.push('/create-password')
   }
 }
 

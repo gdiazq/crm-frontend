@@ -6,8 +6,10 @@ import { useAuthSessionStorage } from '@/composables'
 import type {
   AlertsCore,
   AuthCheckEmailResponse,
+  AuthCreatePasswordPayload,
   AuthLoginPayload,
   AuthRegisterPayload,
+  AuthVerifyEmailResponse,
   AuthVerifyEmailPayload,
   AuthUser,
   ModulePermission,
@@ -35,6 +37,7 @@ export const useStoreAuth = defineStore('auth', () => {
   const loginSubmitting = ref(false)
   const registerSubmitting = ref(false)
   const verifySubmitting = ref(false)
+  const createPasswordSubmitting = ref(false)
   const checkEmailSubmitting = ref(false)
   const loginError = ref(false)
   const messageAlert = ref<AlertsCore>({ ...initialAlert })
@@ -44,6 +47,8 @@ export const useStoreAuth = defineStore('auth', () => {
   const loadingUser = ref(false)
   let currentUserRequest: Promise<void> | null = null
   const pendingVerifyEmail = ref<string | null>(authSessionStorage.getPendingVerifyEmail())
+  const pendingPasswordToken = ref<string | null>(authSessionStorage.getPendingPasswordToken())
+  const pendingPasswordTokenIssuedAt = ref<number | null>(authSessionStorage.getPendingPasswordTokenIssuedAt())
   const emailAvailable = ref<boolean | null>(null)
 
   const getUserConfig = async () => {
@@ -168,11 +173,14 @@ export const useStoreAuth = defineStore('auth', () => {
       errorMessage.value = null
       successMessage.value = null
 
-      await axiosInstance.post('/auth/verify-email', payload)
+      const { data } = await axiosInstance.post<AuthVerifyEmailResponse>('/auth/verify-email', payload)
+      pendingPasswordToken.value = data.token
+      authSessionStorage.setPendingPasswordToken(data.token)
+      pendingPasswordTokenIssuedAt.value = authSessionStorage.getPendingPasswordTokenIssuedAt()
       pendingVerifyEmail.value = null
       authSessionStorage.clearPendingVerifyEmail()
-      successMessage.value = 'Correo verificado correctamente. Ya puedes iniciar sesion.'
-      return true
+      successMessage.value = 'Correo verificado correctamente.'
+      return data.token
     } catch (error) {
       errorBack.value = error
       let message = 'No se pudo verificar el correo.'
@@ -189,9 +197,46 @@ export const useStoreAuth = defineStore('auth', () => {
         message,
       }
       errorMessage.value = message
-      return false
+      return null
     } finally {
       verifySubmitting.value = false
+    }
+  }
+
+  const createPassword = async (payload: AuthCreatePasswordPayload) => {
+    try {
+      createPasswordSubmitting.value = true
+      loginError.value = false
+      errorMessage.value = null
+      successMessage.value = null
+
+      await axiosInstance.post('/auth/create-password', payload)
+      pendingPasswordToken.value = null
+      pendingPasswordTokenIssuedAt.value = null
+      authSessionStorage.clearPendingPasswordToken()
+      successMessage.value = 'Contraseña creada correctamente. Ya puedes iniciar sesion.'
+      return true
+    } catch (error) {
+      errorBack.value = error
+      let message = 'No se pudo crear la contraseña.'
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status
+        if (status === 400) {
+          message = 'La contraseña no cumple los requisitos o el token es invalido.'
+        }
+        if (status === 404) message = 'No se encontro el proceso de creacion de contraseña.'
+      }
+
+      messageAlert.value = {
+        icon: 'fa-solid fa-triangle-exclamation',
+        variant: 'error',
+        message,
+      }
+      errorMessage.value = message
+      return false
+    } finally {
+      createPasswordSubmitting.value = false
     }
   }
 
@@ -223,6 +268,9 @@ export const useStoreAuth = defineStore('auth', () => {
     user.value = null
     permissions.value = []
     menu.value = null
+    pendingPasswordToken.value = null
+    pendingPasswordTokenIssuedAt.value = null
+    authSessionStorage.clearPendingPasswordToken()
   }
 
   const logout = async () => {
@@ -237,6 +285,18 @@ export const useStoreAuth = defineStore('auth', () => {
   const setPendingVerifyEmail = (email: string) => {
     pendingVerifyEmail.value = email
     authSessionStorage.setPendingVerifyEmail(email)
+  }
+
+  const setPendingPasswordToken = (token: string) => {
+    pendingPasswordToken.value = token
+    authSessionStorage.setPendingPasswordToken(token)
+    pendingPasswordTokenIssuedAt.value = authSessionStorage.getPendingPasswordTokenIssuedAt()
+  }
+
+  const clearPendingPasswordToken = () => {
+    pendingPasswordToken.value = null
+    pendingPasswordTokenIssuedAt.value = null
+    authSessionStorage.clearPendingPasswordToken()
   }
 
   const handleSidebarCollapse = () => {
@@ -261,6 +321,7 @@ export const useStoreAuth = defineStore('auth', () => {
     loginSubmitting,
     registerSubmitting,
     verifySubmitting,
+    createPasswordSubmitting,
     checkEmailSubmitting,
     loginError,
     messageAlert,
@@ -269,16 +330,21 @@ export const useStoreAuth = defineStore('auth', () => {
     errorBack,
     loadingUser,
     pendingVerifyEmail,
+    pendingPasswordToken,
+    pendingPasswordTokenIssuedAt,
     emailAvailable,
     getUserConfig,
     login,
     register,
     checkEmailAvailability,
     verifyEmail,
+    createPassword,
     getCurrentUser,
     reset,
     logout,
     setPendingVerifyEmail,
+    setPendingPasswordToken,
+    clearPendingPasswordToken,
     handleSidebarCollapse,
     handleSidebarMobile,
     hasPermission,

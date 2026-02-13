@@ -6,6 +6,7 @@ import { handleAuthentication } from '@/middlewares/auth.middleware'
 import LoginView from '@/views/public/LoginView.vue'
 import RegisterView from '@/views/public/RegisterView.vue'
 import VerifyEmailView from '@/views/public/VerifyEmailView.vue'
+import CreatePasswordView from '@/views/public/CreatePasswordView.vue'
 import LogoutView from '@/views/public/LogoutView.vue'
 import HomeView from '@/views/HomeView.vue'
 import DashboardView from '@/views/private/DashboardView.vue'
@@ -52,6 +53,20 @@ const routes: RouteRecordRaw[] = [
       permissionType: 'canRead',
       requiresPermissions: false,
       module: 'VerifyEmail',
+      parent: '',
+    },
+  },
+  {
+    path: '/create-password',
+    name: 'create-password',
+    component: CreatePasswordView,
+    meta: {
+      title: 'Crear contraseña',
+      layout: 'LayoutPublicDefault',
+      requiresAuth: false,
+      permissionType: 'canRead',
+      requiresPermissions: false,
+      module: 'CreatePassword',
       parent: '',
     },
   },

@@ -25,6 +25,16 @@ export interface AuthVerifyEmailPayload {
   code: string
 }
 
+export interface AuthVerifyEmailResponse {
+  message: string
+  token: string
+}
+
+export interface AuthCreatePasswordPayload {
+  token: string
+  newPassword: string
+}
+
 export interface AuthCheckEmailResponse {
   available: boolean
 }
