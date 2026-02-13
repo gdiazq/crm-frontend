@@ -42,6 +42,7 @@ export const useStoreAuth = defineStore('auth', () => {
   const errorMessage = ref<string | null>(null)
   const errorBack = ref<unknown | null>(null)
   const loadingUser = ref(false)
+  let currentUserRequest: Promise<void> | null = null
   const pendingVerifyEmail = ref<string | null>(authSessionStorage.getPendingVerifyEmail())
   const emailAvailable = ref<boolean | null>(null)
 
@@ -195,20 +196,27 @@ export const useStoreAuth = defineStore('auth', () => {
   }
 
   async function getCurrentUser() {
+    if (currentUserRequest) return currentUserRequest
+
     loadingUser.value = true
 
-    try {
-      const { data } = await axiosInstance.get<{ user: AuthUser; modules?: ModulePermission[] }>('/auth/me')
-      user.value = data.user
-      permissions.value = data.modules || []
-      await getUserConfig()
-    } catch (error) {
-      user.value = null
-      permissions.value = []
-      errorBack.value = error
-    } finally {
-      loadingUser.value = false
-    }
+    currentUserRequest = (async () => {
+      try {
+        const { data } = await axiosInstance.get<{ user: AuthUser; modules?: ModulePermission[] }>('/auth/me')
+        user.value = data.user
+        permissions.value = data.modules || []
+        await getUserConfig()
+      } catch (error) {
+        user.value = null
+        permissions.value = []
+        errorBack.value = error
+      } finally {
+        loadingUser.value = false
+        currentUserRequest = null
+      }
+    })()
+
+    return currentUserRequest
   }
 
   const reset = () => {

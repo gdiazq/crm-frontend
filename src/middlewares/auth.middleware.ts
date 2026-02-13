@@ -10,6 +10,7 @@ export async function handleAuthentication(
 ): Promise<true | { path: string } | { name: string }> {
   const requiresAuth = to.matched.some((r) => r.meta.requiresAuth)
   const requiresPermissions = to.matched.some((r) => r.meta.requiresPermissions)
+  const isLogoutRoute = to.path === '/logout'
 
   try {
     if (requiresAuth && !storeAuth.user && !storeAuth.loadingUser) {
@@ -20,7 +21,7 @@ export async function handleAuthentication(
   }
 
   if (!storeAuth.user && requiresAuth) return { path: '/login' }
-  if (storeAuth.user && !requiresAuth) return { path: '/' }
+  if (storeAuth.user && !requiresAuth && !isLogoutRoute) return { path: '/' }
 
   if (storeAuth.user && requiresPermissions) {
     const canAccess = storeAuth.hasPermission(to.meta.module, to.meta.permissionType)

@@ -62,7 +62,7 @@ const routes: RouteRecordRaw[] = [
     meta: {
       title: 'Logout',
       layout: 'LayoutPublicDefault',
-      requiresAuth: true,
+      requiresAuth: false,
       permissionType: 'canRead',
       requiresPermissions: false,
       module: 'Logout',
