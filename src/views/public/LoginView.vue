@@ -3,11 +3,10 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { computed, ref } from 'vue'
 import { ButtonComponent, FooterComponent, InputComponent, PasswordInputComponent, ThemeToggle } from '@/components'
-import { useStoreAuth, useStoreTheme } from '@/stores'
+import { useStoreAuth } from '@/stores'
 
 const router = useRouter()
 const storeAuth = useStoreAuth()
-const storeTheme = useStoreTheme()
 const form = ref({
   email: '',
   password: '',
@@ -84,7 +83,6 @@ const handleGoHome = () => {
 }
 
 onMounted(() => {
-  storeTheme.initTheme()
   const rememberedEmail = localStorage.getItem('rememberEmail')
   if (rememberedEmail) {
     handleEmailValue(rememberedEmail)

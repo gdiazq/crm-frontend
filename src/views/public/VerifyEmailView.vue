@@ -3,11 +3,10 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, ThemeToggle, VerificationCodeInputComponent } from '@/components'
-import { useStoreAuth, useStoreTheme } from '@/stores'
+import { useStoreAuth } from '@/stores'
 
 const router = useRouter()
 const storeAuth = useStoreAuth()
-const storeTheme = useStoreTheme()
 const { verifySubmitting, errorMessage, successMessage, pendingVerifyEmail } = storeToRefs(storeAuth)
 
 const form = ref({
@@ -43,7 +42,6 @@ const handleGoLogin = () => {
 }
 
 onMounted(() => {
-  storeTheme.initTheme()
   if (!pendingVerifyEmail.value) handleMessageAlert('No se encontro el correo a verificar. Vuelve a registrarte.')
 })
 </script>

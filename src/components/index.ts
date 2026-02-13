@@ -1,5 +1,6 @@
 import ThemeToggle from './common/ThemeToggle.vue'
 import NotificationPanel from './common/NotificationPanel.vue'
+import CookieConsentBanner from './common/CookieConsentBanner.vue'
 import FooterComponent from './frontpage/FooterComponent.vue'
 import FeatureGrid from './frontpage/FeatureGrid.vue'
 import HeroContent from './frontpage/HeroContent.vue'
@@ -14,6 +15,7 @@ import SelectComponent from './ui/select/SelectComponent.vue'
 export {
   ThemeToggle,
   NotificationPanel,
+  CookieConsentBanner,
   FooterComponent,
   FeatureGrid,
   HeroContent,

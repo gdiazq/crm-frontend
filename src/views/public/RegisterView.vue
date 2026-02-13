@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle } from '@/components'
-import { useStoreAuth, useStoreTheme } from '@/stores'
+import { useStoreAuth } from '@/stores'
 
 const router = useRouter()
 const storeAuth = useStoreAuth()
-const storeTheme = useStoreTheme()
 const { errorMessage, registerSubmitting, checkEmailSubmitting, emailAvailable } = storeToRefs(storeAuth)
 
 const form = ref({
@@ -84,10 +83,6 @@ const submitForm = async () => {
 const handleGoHome = () => {
   router.push('/')
 }
-
-onMounted(() => {
-  storeTheme.initTheme()
-})
 
 watch(
   () => form.value.email,

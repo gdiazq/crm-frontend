@@ -29,11 +29,6 @@ export interface AuthCheckEmailResponse {
   available: boolean
 }
 
-export interface AuthLoginResponse {
-  user: AuthUser
-  modules?: ModulePermission[]
-}
-
 export interface AlertsCore {
   icon: string
   variant: 'success' | 'error' | 'warning' | 'info'
