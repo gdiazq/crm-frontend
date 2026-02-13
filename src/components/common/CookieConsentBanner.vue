@@ -1,17 +1,24 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 
-const COOKIE_CONSENT_KEY = 'crm-cookie-consent'
+const COOKIE_CONSENT_KEY = 'crm_cookie_consent'
 const isVisible = ref(false)
 
+const hasConsentCookie = () => {
+  const cookieString = document.cookie || ''
+  return cookieString.split(';').some((rawCookie) => {
+    const cookie = rawCookie.trim()
+    return cookie === `${COOKIE_CONSENT_KEY}=accepted`
+  })
+}
+
 const handleAccept = () => {
-  localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted')
+  document.cookie = `${COOKIE_CONSENT_KEY}=accepted; Path=/; Max-Age=31536000; SameSite=Lax`
   isVisible.value = false
 }
 
 onMounted(() => {
-  const storedConsent = localStorage.getItem(COOKIE_CONSENT_KEY)
-  isVisible.value = storedConsent !== 'accepted'
+  isVisible.value = !hasConsentCookie()
 })
 </script>
 
