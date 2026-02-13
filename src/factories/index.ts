@@ -1,6 +1,11 @@
 import {
   initialCreatePasswordForm,
+  initialForgotPasswordForm,
+  initialLoginForm,
   initialPasswordRequirements,
+  initialRegisterForm,
+  initialResendVerificationForm,
+  initialVerifyEmailForm,
 } from './auth.factory'
 import {
   initialCounterNotification,
@@ -13,7 +18,12 @@ import {
 
 export {
   initialCreatePasswordForm,
+  initialForgotPasswordForm,
+  initialLoginForm,
   initialPasswordRequirements,
+  initialRegisterForm,
+  initialResendVerificationForm,
+  initialVerifyEmailForm,
   initialCounterNotification,
   initialNotifications,
   initialTabNotification,

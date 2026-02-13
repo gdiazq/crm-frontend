@@ -8,7 +8,7 @@ const storeAuth = useStoreAuth()
 
 onMounted(async () => {
   await storeAuth.logout()
-  await router.replace('/')
+  await router.push('/')
 })
 </script>
 

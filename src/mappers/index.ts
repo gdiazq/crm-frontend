@@ -1,7 +1,12 @@
 import {
   mapperCreatePasswordPayload,
+  mapperForgotPasswordPayload,
+  mapperLoginPayload,
+  mapperRegisterPayload,
+  mapperResendVerificationPayload,
   mapperMissingPasswordRequirements,
   mapperPasswordRequirements,
+  mapperVerifyEmailPayload,
 } from './auth.mapper'
 import {
   mapperArchiveNotification,
@@ -19,6 +24,11 @@ import {
 
 export {
   mapperCreatePasswordPayload,
+  mapperForgotPasswordPayload,
+  mapperLoginPayload,
+  mapperRegisterPayload,
+  mapperVerifyEmailPayload,
+  mapperResendVerificationPayload,
   mapperPasswordRequirements,
   mapperMissingPasswordRequirements,
   mapperNotification,

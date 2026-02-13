@@ -1,8 +1,41 @@
-import type { AuthCreatePasswordForm, PasswordRequirement } from '@/interfaces'
+import type {
+  AuthCreatePasswordForm,
+  AuthForgotPasswordForm,
+  AuthLoginForm,
+  AuthRegisterForm,
+  AuthResendVerificationForm,
+  AuthVerifyEmailForm,
+  PasswordRequirement,
+} from '@/interfaces'
 
 export const initialCreatePasswordForm: AuthCreatePasswordForm = {
   password: '',
   confirmPassword: '',
+}
+
+export const initialLoginForm: AuthLoginForm = {
+  email: '',
+  password: '',
+}
+
+export const initialForgotPasswordForm: AuthForgotPasswordForm = {
+  email: '',
+}
+
+export const initialRegisterForm: AuthRegisterForm = {
+  username: '',
+  firstName: '',
+  lastName: '',
+  phoneNumber: '',
+  email: '',
+}
+
+export const initialVerifyEmailForm: AuthVerifyEmailForm = {
+  code: '',
+}
+
+export const initialResendVerificationForm: AuthResendVerificationForm = {
+  phoneNumber: '',
 }
 
 export const initialPasswordRequirements: PasswordRequirement[] = [

@@ -12,7 +12,20 @@ export interface AuthLoginPayload {
   password: string
 }
 
+export interface AuthLoginForm {
+  email: string
+  password: string
+}
+
 export interface AuthRegisterPayload {
+  username: string
+  email: string
+  firstName: string
+  lastName: string
+  phoneNumber: string
+}
+
+export interface AuthRegisterForm {
   username: string
   email: string
   firstName: string
@@ -25,6 +38,10 @@ export interface AuthVerifyEmailPayload {
   code: string
 }
 
+export interface AuthVerifyEmailForm {
+  code: string
+}
+
 export interface AuthVerifyEmailResponse {
   message: string
   token: string
@@ -33,6 +50,14 @@ export interface AuthVerifyEmailResponse {
 export interface AuthCreatePasswordPayload {
   token: string
   newPassword: string
+}
+
+export interface AuthForgotPasswordPayload {
+  email: string
+}
+
+export interface AuthForgotPasswordForm {
+  email: string
 }
 
 export interface AuthCreatePasswordForm {
@@ -52,6 +77,10 @@ export interface AuthCheckEmailResponse {
 
 export interface AuthResendVerificationPayload {
   email: string
+  phoneNumber: string
+}
+
+export interface AuthResendVerificationForm {
   phoneNumber: string
 }
 

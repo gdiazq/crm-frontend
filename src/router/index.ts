@@ -4,6 +4,7 @@ import { useStoreAuth } from '@/stores'
 import { handleAuthentication } from '@/middlewares/auth.middleware'
 
 import LoginView from '@/views/public/LoginView.vue'
+import RecoveryView from '@/views/public/RecoveryView.vue'
 import RegisterView from '@/views/public/RegisterView.vue'
 import VerifyEmailView from '@/views/public/VerifyEmailView.vue'
 import CreatePasswordView from '@/views/public/CreatePasswordView.vue'
@@ -39,6 +40,20 @@ const routes: RouteRecordRaw[] = [
       permissionType: 'canRead',
       requiresPermissions: false,
       module: 'Register',
+      parent: '',
+    },
+  },
+  {
+    path: '/recovery',
+    name: 'recovery',
+    component: RecoveryView,
+    meta: {
+      title: 'Recuperar contraseña',
+      layout: 'LayoutPublicDefault',
+      requiresAuth: false,
+      permissionType: 'canRead',
+      requiresPermissions: false,
+      module: 'Recovery',
       parent: '',
     },
   },

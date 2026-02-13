@@ -56,7 +56,7 @@ const clearTimers = () => {
 const redirectToLoginByExpiration = () => {
   clearTimers()
   storeAuth.clearPendingPasswordToken()
-  router.replace('/login')
+  router.push('/login')
 }
 
 const setupTokenExpiration = () => {
@@ -102,7 +102,7 @@ const submitForm = async () => {
   if (success) {
     clearTimers()
     storeAuth.reset()
-    router.replace('/login')
+    router.push('/login')
   }
 }
 

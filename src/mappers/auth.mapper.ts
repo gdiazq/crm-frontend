@@ -1,9 +1,58 @@
-import type { AuthCreatePasswordPayload, PasswordRequirement } from '@/interfaces'
+import type {
+  AuthCreatePasswordPayload,
+  AuthForgotPasswordPayload,
+  AuthLoginPayload,
+  AuthRegisterPayload,
+  AuthResendVerificationPayload,
+  AuthVerifyEmailPayload,
+  PasswordRequirement,
+} from '@/interfaces'
+
+export const mapperLoginPayload = (email: string, password: string): AuthLoginPayload => {
+  return {
+    email: email.trim(),
+    password,
+  }
+}
 
 export const mapperCreatePasswordPayload = (token: string, password: string): AuthCreatePasswordPayload => {
   return {
     token,
     newPassword: password,
+  }
+}
+
+export const mapperForgotPasswordPayload = (email: string): AuthForgotPasswordPayload => {
+  return { email: email.trim() }
+}
+
+export const mapperRegisterPayload = (
+  username: string,
+  email: string,
+  firstName: string,
+  lastName: string,
+  phoneNumber: string,
+): AuthRegisterPayload => {
+  return {
+    username: username.trim(),
+    email: email.trim(),
+    firstName: firstName.trim(),
+    lastName: lastName.trim(),
+    phoneNumber: phoneNumber.trim(),
+  }
+}
+
+export const mapperVerifyEmailPayload = (email: string, code: string): AuthVerifyEmailPayload => {
+  return {
+    email: email.trim(),
+    code: code.trim(),
+  }
+}
+
+export const mapperResendVerificationPayload = (email: string, phoneNumber: string): AuthResendVerificationPayload => {
+  return {
+    email: email.trim(),
+    phoneNumber: phoneNumber.trim(),
   }
 }
 

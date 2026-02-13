@@ -7,6 +7,7 @@ import type {
   AlertsCore,
   AuthCheckEmailResponse,
   AuthCreatePasswordPayload,
+  AuthForgotPasswordPayload,
   AuthLoginPayload,
   AuthResendVerificationPayload,
   AuthRegisterPayload,
@@ -37,6 +38,7 @@ export const useStoreAuth = defineStore('auth', () => {
 
   const loginSubmitting = ref(false)
   const registerSubmitting = ref(false)
+  const forgotPasswordSubmitting = ref(false)
   const verifySubmitting = ref(false)
   const createPasswordSubmitting = ref(false)
   const resendSubmitting = ref(false)
@@ -50,6 +52,7 @@ export const useStoreAuth = defineStore('auth', () => {
   let currentUserRequest: Promise<void> | null = null
   const pendingVerifyEmail = ref<string | null>(authSessionStorage.getPendingVerifyEmail())
   const pendingVerifyPhone = ref<string | null>(authSessionStorage.getPendingVerifyPhone())
+  const pendingRecoveryEmail = ref<string | null>(authSessionStorage.getPendingRecoveryEmail())
   const pendingPasswordToken = ref<string | null>(authSessionStorage.getPendingPasswordToken())
   const pendingPasswordTokenIssuedAt = ref<number | null>(authSessionStorage.getPendingPasswordTokenIssuedAt())
   const emailAvailable = ref<boolean | null>(null)
@@ -210,6 +213,40 @@ export const useStoreAuth = defineStore('auth', () => {
     }
   }
 
+  const forgotPassword = async (payload: AuthForgotPasswordPayload) => {
+    try {
+      forgotPasswordSubmitting.value = true
+      loginError.value = false
+      errorMessage.value = null
+      successMessage.value = null
+
+      await axiosInstance.post('/auth/forgot-password', payload)
+      pendingRecoveryEmail.value = payload.email
+      authSessionStorage.setPendingRecoveryEmail(payload.email)
+      successMessage.value = 'Te enviamos un codigo de recuperacion al correo.'
+      return true
+    } catch (error) {
+      errorBack.value = error
+      let message = 'No se pudo iniciar la recuperacion de contraseña.'
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status
+        if (status === 400) message = 'Correo invalido.'
+        if (status === 404) message = 'No existe una cuenta con ese correo.'
+      }
+
+      messageAlert.value = {
+        icon: 'fa-solid fa-triangle-exclamation',
+        variant: 'error',
+        message,
+      }
+      errorMessage.value = message
+      return false
+    } finally {
+      forgotPasswordSubmitting.value = false
+    }
+  }
+
   const resendVerification = async (payload: AuthResendVerificationPayload) => {
     try {
       resendSubmitting.value = true
@@ -304,6 +341,8 @@ export const useStoreAuth = defineStore('auth', () => {
     pendingPasswordToken.value = null
     pendingPasswordTokenIssuedAt.value = null
     authSessionStorage.clearPendingPasswordToken()
+    pendingRecoveryEmail.value = null
+    authSessionStorage.clearPendingRecoveryEmail()
   }
 
   const logout = async () => {
@@ -323,6 +362,11 @@ export const useStoreAuth = defineStore('auth', () => {
   const setPendingVerifyPhone = (phone: string) => {
     pendingVerifyPhone.value = phone
     authSessionStorage.setPendingVerifyPhone(phone)
+  }
+
+  const setPendingRecoveryEmail = (email: string) => {
+    pendingRecoveryEmail.value = email
+    authSessionStorage.setPendingRecoveryEmail(email)
   }
 
   const setPendingPasswordToken = (token: string) => {
@@ -358,6 +402,7 @@ export const useStoreAuth = defineStore('auth', () => {
     sidebar,
     loginSubmitting,
     registerSubmitting,
+    forgotPasswordSubmitting,
     verifySubmitting,
     createPasswordSubmitting,
     resendSubmitting,
@@ -370,12 +415,14 @@ export const useStoreAuth = defineStore('auth', () => {
     loadingUser,
     pendingVerifyEmail,
     pendingVerifyPhone,
+    pendingRecoveryEmail,
     pendingPasswordToken,
     pendingPasswordTokenIssuedAt,
     emailAvailable,
     getUserConfig,
     login,
     register,
+    forgotPassword,
     checkEmailAvailability,
     verifyEmail,
     resendVerification,
@@ -385,6 +432,7 @@ export const useStoreAuth = defineStore('auth', () => {
     logout,
     setPendingVerifyEmail,
     setPendingVerifyPhone,
+    setPendingRecoveryEmail,
     setPendingPasswordToken,
     clearPendingPasswordToken,
     handleSidebarCollapse,

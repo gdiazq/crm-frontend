@@ -3,6 +3,7 @@ const storageKeys = {
   pendingVerifyPhone: 'pendingVerifyPhone',
   pendingPasswordToken: 'pendingPasswordToken',
   pendingPasswordTokenIssuedAt: 'pendingPasswordTokenIssuedAt',
+  pendingRecoveryEmail: 'pendingRecoveryEmail',
 }
 
 export const useAuthSessionStorage = () => {
@@ -52,6 +53,18 @@ export const useAuthSessionStorage = () => {
     sessionStorage.removeItem(storageKeys.pendingPasswordTokenIssuedAt)
   }
 
+  const setPendingRecoveryEmail = (email: string) => {
+    sessionStorage.setItem(storageKeys.pendingRecoveryEmail, email)
+  }
+
+  const getPendingRecoveryEmail = () => {
+    return sessionStorage.getItem(storageKeys.pendingRecoveryEmail)
+  }
+
+  const clearPendingRecoveryEmail = () => {
+    sessionStorage.removeItem(storageKeys.pendingRecoveryEmail)
+  }
+
   return {
     setPendingVerifyEmail,
     getPendingVerifyEmail,
@@ -63,5 +76,8 @@ export const useAuthSessionStorage = () => {
     getPendingPasswordToken,
     getPendingPasswordTokenIssuedAt,
     clearPendingPasswordToken,
+    setPendingRecoveryEmail,
+    getPendingRecoveryEmail,
+    clearPendingRecoveryEmail,
   }
 }

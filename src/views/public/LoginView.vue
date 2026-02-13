@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onBeforeUnmount, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { computed, ref } from 'vue'
 import { ButtonComponent, FooterComponent, InputComponent, PasswordInputComponent, ThemeToggle } from '@/components'
+import { initialLoginForm } from '@/factories'
+import { mapperLoginPayload } from '@/mappers'
 import { useStoreAuth } from '@/stores'
 
 const router = useRouter()
 const storeAuth = useStoreAuth()
-const form = ref({
-  email: '',
-  password: '',
-})
+const form = ref({ ...initialLoginForm })
 const remindMe = ref(false)
 
 const controlIsValidForm = computed(() => {
@@ -44,7 +43,8 @@ const submitForm = async () => {
     return
   }
 
-  const success = await storeAuth.login(form.value)
+  const payload = mapperLoginPayload(form.value.email, form.value.password)
+  const success = await storeAuth.login(payload)
   if (!success) {
     handleMessageAlert(storeAuth.messageAlert.message || 'Usuario o contraseña incorrectos.')
     return
@@ -62,11 +62,7 @@ const submitForm = async () => {
 
 const handleRecovery = () => {
   storeAuth.loginError = false
-  storeAuth.messageAlert = {
-    icon: 'fa-solid fa-circle-info',
-    variant: 'info',
-    message: 'Recuperacion de contraseña disponible proximamente.',
-  }
+  router.push('/recovery')
 }
 
 const handleMicrosoftLogin = () => {
@@ -83,11 +79,21 @@ const handleGoHome = () => {
 }
 
 onMounted(() => {
+  storeAuth.loginError = false
+  storeAuth.messageAlert = {
+    icon: 'fa-solid fa-circle-info',
+    variant: 'info',
+    message: '',
+  }
   const rememberedEmail = localStorage.getItem('rememberEmail')
   if (rememberedEmail) {
     handleEmailValue(rememberedEmail)
     remindMe.value = true
   }
+})
+
+onBeforeUnmount(() => {
+  storeAuth.loginError = false
 })
 </script>
 

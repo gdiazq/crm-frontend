@@ -3,16 +3,16 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle, VerificationCodeInputComponent } from '@/components'
+import { initialResendVerificationForm, initialVerifyEmailForm } from '@/factories'
+import { mapperResendVerificationPayload, mapperVerifyEmailPayload } from '@/mappers'
 import { useStoreAuth } from '@/stores'
 
 const router = useRouter()
 const storeAuth = useStoreAuth()
 const { verifySubmitting, resendSubmitting, errorMessage, successMessage, pendingVerifyEmail, pendingVerifyPhone } = storeToRefs(storeAuth)
 
-const form = ref({
-  code: '',
-})
-const resendPhone = ref('')
+const form = ref({ ...initialVerifyEmailForm })
+const resendForm = ref({ ...initialResendVerificationForm })
 const showResendModal = ref(false)
 const resendModalError = ref<string | null>(null)
 
@@ -45,27 +45,24 @@ const handleResendCode = async () => {
     return
   }
 
-  if (!resendPhone.value.trim()) {
+  if (!resendForm.value.phoneNumber.trim()) {
     resendModalError.value = 'Debes ingresar tu numero de telefono para reenviar el codigo.'
     return
   }
 
-  const inputPhone = normalizePhone(resendPhone.value)
+  const inputPhone = normalizePhone(resendForm.value.phoneNumber)
   const expectedPhone = normalizePhone(pendingVerifyPhone.value)
   if (inputPhone !== expectedPhone) {
     resendModalError.value = 'El numero de telefono no coincide con el registrado.'
     return
   }
 
-  const success = await storeAuth.resendVerification({
-    email: pendingVerifyEmail.value,
-    phoneNumber: resendPhone.value.trim(),
-  })
+  const payload = mapperResendVerificationPayload(pendingVerifyEmail.value, resendForm.value.phoneNumber)
+  const success = await storeAuth.resendVerification(payload)
   if (success) {
     form.value.code = ''
-    resendPhone.value = ''
+    resendForm.value.phoneNumber = ''
     closeResendModal()
-    router.replace('/verify-email')
     return
   }
 
@@ -74,7 +71,7 @@ const handleResendCode = async () => {
 }
 
 const openResendModal = () => {
-  resendPhone.value = ''
+  resendForm.value.phoneNumber = ''
   resendModalError.value = null
   showResendModal.value = true
 }
@@ -90,7 +87,8 @@ const submitForm = async () => {
     return
   }
 
-  const success = await storeAuth.verifyEmail({ email: pendingVerifyEmail.value || '', code: form.value.code })
+  const payload = mapperVerifyEmailPayload(pendingVerifyEmail.value || '', form.value.code)
+  const success = await storeAuth.verifyEmail(payload)
   if (success) {
     router.push('/create-password')
   }
@@ -169,7 +167,7 @@ onMounted(() => {
 
         <div class="mt-4">
           <InputComponent
-            v-model="resendPhone"
+            v-model="resendForm.phoneNumber"
             label="Telefono"
             type="tel"
             autocomplete="tel"
