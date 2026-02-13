@@ -1,20 +1,19 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { useStoreTheme } from '@/stores'
-
-const storeTheme = useStoreTheme()
-const { isDark } = storeToRefs(storeTheme)
+const props = defineProps<{
+  isDark: boolean
+  onToggle: () => void
+}>()
 </script>
 
 <template>
   <button
     type="button"
-    :aria-label="isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+    :aria-label="props.isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
     class="inline-flex h-11 w-11 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 border-slate-300 bg-white text-slate-700 hover:border-cyan-500 hover:text-cyan-700 focus-visible:ring-offset-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-cyan-300/60 dark:hover:text-cyan-300 dark:focus-visible:ring-offset-slate-950"
-    @click="storeTheme.toggleTheme"
+    @click="props.onToggle"
   >
     <!-- Sol (visible en dark mode) -->
-    <svg v-if="isDark" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+    <svg v-if="props.isDark" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 2a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm0 17a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1Zm10-7a1 1 0 0 1-1 1h-1a1 1 0 1 1 0-2h1a1 1 0 0 1 1 1ZM5 13H4a1 1 0 1 1 0-2h1a1 1 0 1 1 0 2Zm12.95 6.536a1 1 0 0 1-1.414 0l-.707-.707a1 1 0 1 1 1.414-1.414l.707.707a1 1 0 0 1 0 1.414ZM8.172 8.879a1 1 0 1 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 1.414l-.707.707Zm9.778-2.121a1 1 0 0 1 0 1.414l-.707.707a1 1 0 1 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0ZM8.172 15.121a1 1 0 0 1 0 1.414l-.707.707a1 1 0 1 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Z" />
     </svg>
     <!-- Luna (visible en light mode) -->

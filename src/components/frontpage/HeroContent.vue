@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import { ButtonComponent } from '@/components'
-import router from '@/router'
 
-const handleGoRegister = () => {
-  router.push('/register')
-}
-
-const handleGoDashboard = () => {
-  router.push('/dashboard')
-}
+const props = defineProps<{
+  onGoRegister: () => void
+  onGoDashboard: () => void
+}>()
 </script>
 
 <template>
@@ -21,10 +17,10 @@ const handleGoDashboard = () => {
       vista clara de todo el ciclo de cliente.
     </p>
     <div class="mt-8 flex flex-wrap gap-3">
-      <ButtonComponent variant="solid" @click="handleGoRegister">
+      <ButtonComponent variant="solid" :on-click="props.onGoRegister">
         Solicitar demo
       </ButtonComponent>
-      <ButtonComponent variant="outline" @click="handleGoDashboard">
+      <ButtonComponent variant="outline" :on-click="props.onGoDashboard">
         Ver dashboard
       </ButtonComponent>
     </div>

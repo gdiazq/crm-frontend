@@ -5,10 +5,12 @@ import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle } from '@/components'
 import { initialRegisterForm } from '@/factories'
 import { mapperRegisterPayload } from '@/mappers'
-import { useStoreAuth } from '@/stores'
+import { useStoreAuth, useStoreTheme } from '@/stores'
 
 const router = useRouter()
 const storeAuth = useStoreAuth()
+const storeTheme = useStoreTheme()
+const { isDark } = storeToRefs(storeTheme)
 const { errorMessage, registerSubmitting, checkEmailSubmitting, emailAvailable } = storeToRefs(storeAuth)
 
 const form = ref({ ...initialRegisterForm })
@@ -111,7 +113,7 @@ onBeforeUnmount(() => {
 <template>
   <main class="relative flex min-h-screen flex-col overflow-hidden bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
     <div class="fixed right-4 top-4 z-50">
-      <ThemeToggle />
+      <ThemeToggle :is-dark="isDark" :on-toggle="storeTheme.toggleTheme" />
     </div>
     <div class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(8,145,178,0.12),_transparent_45%),radial-gradient(circle_at_80%_20%,_rgba(14,116,144,0.1),_transparent_35%)] dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_40%),radial-gradient(circle_at_80%_20%,_rgba(14,165,233,0.12),_transparent_35%)]"></div>
 
@@ -130,48 +132,48 @@ onBeforeUnmount(() => {
 
         <form class="mt-7 space-y-4" @submit.prevent="submitForm">
         <InputComponent
-          v-model.trim="form.username"
+          :model-value="form.username"
           label="Usuario"
           type="text"
           autocomplete="username"
           placeholder="johndoe"
-          @update:model-value="handleUsernameValue"
+          :on-value-change="handleUsernameValue"
           required
         />
         <InputComponent
-          v-model.trim="form.firstName"
+          :model-value="form.firstName"
           label="Nombre"
           type="text"
           autocomplete="given-name"
           placeholder="John"
-          @update:model-value="handleFirstNameValue"
+          :on-value-change="handleFirstNameValue"
           required
         />
         <InputComponent
-          v-model.trim="form.lastName"
+          :model-value="form.lastName"
           label="Apellido"
           type="text"
           autocomplete="family-name"
           placeholder="Doe"
-          @update:model-value="handleLastNameValue"
+          :on-value-change="handleLastNameValue"
           required
         />
         <InputComponent
-          v-model.trim="form.email"
+          :model-value="form.email"
           label="Correo"
           type="email"
           autocomplete="email"
           placeholder="tu@empresa.com"
-          @update:model-value="handleEmailValue"
+          :on-value-change="handleEmailValue"
           required
         />
         <InputComponent
-          v-model.trim="form.phoneNumber"
+          :model-value="form.phoneNumber"
           label="Telefono"
           type="tel"
           autocomplete="tel"
           placeholder="+1234567890"
-          @update:model-value="handlePhoneNumberValue"
+          :on-value-change="handlePhoneNumberValue"
           required
         />
 

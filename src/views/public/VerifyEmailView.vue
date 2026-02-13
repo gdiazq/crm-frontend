@@ -2,13 +2,15 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle, VerificationCodeInputComponent } from '@/components'
+import { ButtonComponent, FooterComponent, ResendVerificationModal, ThemeToggle, VerificationCodeInputComponent } from '@/components'
 import { initialResendVerificationForm, initialVerifyEmailForm } from '@/factories'
 import { mapperResendVerificationPayload, mapperVerifyEmailPayload } from '@/mappers'
-import { useStoreAuth } from '@/stores'
+import { useStoreAuth, useStoreTheme } from '@/stores'
 
 const router = useRouter()
 const storeAuth = useStoreAuth()
+const storeTheme = useStoreTheme()
+const { isDark } = storeToRefs(storeTheme)
 const { verifySubmitting, resendSubmitting, errorMessage, successMessage, pendingVerifyEmail, pendingVerifyPhone } = storeToRefs(storeAuth)
 
 const form = ref({ ...initialVerifyEmailForm })
@@ -81,6 +83,10 @@ const closeResendModal = () => {
   showResendModal.value = false
 }
 
+const handleResendPhoneValue = (value: string) => {
+  resendForm.value.phoneNumber = value
+}
+
 const submitForm = async () => {
   if (!controlIsValidForm.value) {
     handleMessageAlert('No se encontro el correo a verificar o falta el codigo.')
@@ -106,7 +112,7 @@ onMounted(() => {
 <template>
   <main class="relative flex min-h-screen flex-col overflow-hidden bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
     <div class="fixed right-4 top-4 z-50">
-      <ThemeToggle />
+      <ThemeToggle :is-dark="isDark" :on-toggle="storeTheme.toggleTheme" />
     </div>
     <div class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(8,145,178,0.12),_transparent_45%),radial-gradient(circle_at_80%_20%,_rgba(14,116,144,0.1),_transparent_35%)] dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_40%),radial-gradient(circle_at_80%_20%,_rgba(14,165,233,0.12),_transparent_35%)]"></div>
 
@@ -127,7 +133,7 @@ onMounted(() => {
         </p>
 
         <form class="mt-7 space-y-4" @submit.prevent="submitForm">
-          <VerificationCodeInputComponent v-model="form.code" @update:model-value="handleCodeValue" />
+          <VerificationCodeInputComponent :model-value="form.code" :on-value-change="handleCodeValue" />
 
           <button
             type="button"
@@ -154,40 +160,14 @@ onMounted(() => {
 
     <FooterComponent />
 
-    <section
-      v-if="showResendModal"
-      class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 p-4"
-      @click.self="closeResendModal"
-    >
-      <section class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-slate-900">
-        <h3 class="text-lg font-semibold">Reenviar codigo</h3>
-        <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
-          Ingresa tu numero de telefono para confirmar el reenvio.
-        </p>
-
-        <div class="mt-4">
-          <InputComponent
-            v-model="resendForm.phoneNumber"
-            label="Telefono"
-            type="tel"
-            autocomplete="tel"
-            placeholder="+56912345678"
-            required
-          />
-        </div>
-        <p v-if="resendModalError" class="mt-2 text-sm text-rose-500">
-          {{ resendModalError }}
-        </p>
-
-        <div class="mt-4 flex justify-end gap-2">
-          <ButtonComponent variant="outline" :disabled="resendSubmitting" @click="closeResendModal">
-            Cancelar
-          </ButtonComponent>
-          <ButtonComponent variant="solid" :disabled="resendSubmitting" @click="handleResendCode">
-            {{ resendSubmitting ? 'Reenviando...' : 'Confirmar reenvio' }}
-          </ButtonComponent>
-        </div>
-      </section>
-    </section>
+    <ResendVerificationModal
+      :open="showResendModal"
+      :phone-number="resendForm.phoneNumber"
+      :submitting="resendSubmitting"
+      :error-message="resendModalError"
+      :on-close="closeResendModal"
+      :on-confirm="handleResendCode"
+      :on-phone-number-change="handleResendPhoneValue"
+    />
   </main>
 </template>

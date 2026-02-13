@@ -54,6 +54,12 @@ const handleArchive = (id: string) => {
   storeNotification.mutationArchiveNotification(notification, userId)
 }
 
+const formatNotificationTimestamp = (value: string) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '--:--'
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
 onMounted(() => {
   const userId = storeAuth.user?.id
   if (!userId) return
@@ -131,10 +137,11 @@ onBeforeUnmount(() => {
       :is-open="slideNotificaciones"
       :unread-count="unreadCount"
       :notifications="filterNotifications"
-      @close="handleCloseNotificaciones"
-      @mark-all-read="handleMarkAllRead"
-      @mark-read="handleMarkRead"
-      @archive="handleArchive"
+      :on-close="handleCloseNotificaciones"
+      :on-mark-all-read="handleMarkAllRead"
+      :on-mark-read="handleMarkRead"
+      :on-archive="handleArchive"
+      :format-timestamp="formatNotificationTimestamp"
     />
   </main>
 </template>

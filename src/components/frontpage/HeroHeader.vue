@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import { ButtonComponent } from '@/components'
-import router from '@/router'
 
-const handleGoRegister = () => {
-  router.push('/register')
-}
-
-const handleGoLogin = () => {
-  router.push('/login')
-}
+const props = defineProps<{
+  onGoRegister: () => void
+  onGoLogin: () => void
+}>()
 </script>
 
 <template>
@@ -23,10 +19,10 @@ const handleGoLogin = () => {
     </div>
 
     <div class="flex items-center gap-2">
-      <ButtonComponent variant="outline" @click="handleGoRegister">
+      <ButtonComponent variant="outline" :on-click="props.onGoRegister">
         Registrar
       </ButtonComponent>
-      <ButtonComponent variant="outline" @click="handleGoLogin">
+      <ButtonComponent variant="outline" :on-click="props.onGoLogin">
         Iniciar sesion
       </ButtonComponent>
     </div>

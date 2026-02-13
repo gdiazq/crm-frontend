@@ -7,18 +7,16 @@ const props = withDefaults(
     variant?: 'solid' | 'outline'
     fullWidth?: boolean
     disabled?: boolean
+    onClick?: () => void
   }>(),
   {
     type: 'button',
     variant: 'outline',
     fullWidth: false,
     disabled: false,
+    onClick: undefined,
   },
 )
-
-const emit = defineEmits<{
-  (event: 'click'): void
-}>()
 
 const variantClasses: Record<string, string> = {
   solid:
@@ -36,7 +34,7 @@ const classes = computed(() => [
 </script>
 
 <template>
-  <button :type="type" :disabled="disabled" :class="classes" @click="emit('click')">
+  <button :type="type" :disabled="disabled" :class="classes" @click="props.onClick">
     <slot />
   </button>
 </template>

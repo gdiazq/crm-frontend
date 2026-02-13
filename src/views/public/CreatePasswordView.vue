@@ -5,12 +5,14 @@ import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, PasswordInputComponent, ThemeToggle } from '@/components'
 import { initialCreatePasswordForm } from '@/factories'
 import { mapperCreatePasswordPayload, mapperMissingPasswordRequirements, mapperPasswordRequirements } from '@/mappers'
-import { useStoreAuth } from '@/stores'
+import { useStoreAuth, useStoreTheme } from '@/stores'
 
 const PASSWORD_TOKEN_MAX_AGE_MS = 2 * 60 * 1000
 
 const router = useRouter()
 const storeAuth = useStoreAuth()
+const storeTheme = useStoreTheme()
+const { isDark } = storeToRefs(storeTheme)
 const { createPasswordSubmitting, errorMessage, successMessage, pendingPasswordToken, pendingPasswordTokenIssuedAt } = storeToRefs(storeAuth)
 
 const form = ref({ ...initialCreatePasswordForm })
@@ -122,7 +124,7 @@ onBeforeUnmount(() => {
 <template>
   <main class="relative flex min-h-screen flex-col overflow-hidden bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
     <div class="fixed right-4 top-4 z-50">
-      <ThemeToggle />
+      <ThemeToggle :is-dark="isDark" :on-toggle="storeTheme.toggleTheme" />
     </div>
     <div class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(8,145,178,0.12),_transparent_45%),radial-gradient(circle_at_80%_20%,_rgba(14,116,144,0.1),_transparent_35%)] dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_40%),radial-gradient(circle_at_80%_20%,_rgba(14,165,233,0.12),_transparent_35%)]"></div>
 
@@ -152,20 +154,20 @@ onBeforeUnmount(() => {
 
         <form class="mt-7 space-y-4" @submit.prevent="submitForm">
           <PasswordInputComponent
-            v-model="form.password"
+            :model-value="form.password"
             label="Nueva contraseña"
             autocomplete="new-password"
             :minlength="10"
-            @update:model-value="handlePasswordValue"
+            :on-value-change="handlePasswordValue"
             required
           />
 
           <PasswordInputComponent
-            v-model="form.confirmPassword"
+            :model-value="form.confirmPassword"
             label="Confirmar contraseña"
             autocomplete="new-password"
             :minlength="10"
-            @update:model-value="handleConfirmPasswordValue"
+            :on-value-change="handleConfirmPasswordValue"
             required
           />
 
