@@ -11,6 +11,7 @@ import CreatePasswordView from '@/views/public/CreatePasswordView.vue'
 import LogoutView from '@/views/public/LogoutView.vue'
 import HomeView from '@/views/HomeView.vue'
 import DashboardView from '@/views/private/DashboardView.vue'
+import SettingsView from '@/views/private/SettingsView.vue'
 import UnauthorizedView from '@/views/UnauthorizedView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 
@@ -124,6 +125,20 @@ const routes: RouteRecordRaw[] = [
       permissionType: 'canRead',
       requiresPermissions: false,
       module: 'Dashboard',
+      parent: '',
+    },
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: SettingsView,
+    meta: {
+      title: 'Settings',
+      layout: 'LayoutPrivateDefault',
+      requiresAuth: true,
+      permissionType: 'canRead',
+      requiresPermissions: false,
+      module: 'Settings',
       parent: '',
     },
   },

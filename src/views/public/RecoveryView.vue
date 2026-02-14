@@ -87,7 +87,7 @@ onBeforeUnmount(() => {
             label="Correo electrónico"
             type="email"
             autocomplete="email"
-            placeholder="john@example.com"
+            placeholder="Ingresa tu correo"
             :on-value-change="handleEmailValue"
             required
           />

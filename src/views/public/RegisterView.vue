@@ -147,7 +147,7 @@ onBeforeUnmount(() => {
           label="Correo"
           type="email"
           autocomplete="email"
-          placeholder="tu@empresa.com"
+          placeholder="Ingresa tu correo"
           :error="errors.email"
           :on-value-change="(value) => (form.email = value)"
           :on-blur="onBlur('email')"
