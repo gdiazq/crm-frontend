@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle } from '@/components'
@@ -21,6 +21,47 @@ const controlCanSubmit = computed(() => {
 })
 
 const emailCheckTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+
+const clearEmailTimer = () => {
+  if (!emailCheckTimer.value) return
+  clearTimeout(emailCheckTimer.value)
+  emailCheckTimer.value = null
+}
+
+const handleUsernameValue = (value: string) => {
+  form.value.username = value
+}
+
+const handleFirstNameValue = (value: string) => {
+  form.value.firstName = value
+}
+
+const handleLastNameValue = (value: string) => {
+  form.value.lastName = value
+}
+
+const handlePhoneNumberValue = (value: string) => {
+  form.value.phoneNumber = value
+}
+
+const handleEmailValue = (value: string) => {
+  const email = value.trim()
+  form.value.email = email
+  errorMessage.value = null
+  emailAvailable.value = null
+  errors.email = null
+  clearEmailTimer()
+
+  validateField('email')
+  if (errors.email) return
+
+  emailCheckTimer.value = setTimeout(async () => {
+    const available = await storeAuth.checkEmailAvailability(email)
+    if (available === false) {
+      errors.email = 'El correo ya esta registrado.'
+    }
+  }, 350)
+}
 
 const submitForm = async () => {
   if (!validateAll()) {
@@ -55,36 +96,8 @@ const handleGoHome = () => {
   router.push('/')
 }
 
-watch(
-  () => form.value.email,
-  (value) => {
-    const email = value.trim()
-    errorMessage.value = null
-    emailAvailable.value = null
-    errors.email = null
-
-    if (emailCheckTimer.value) {
-      clearTimeout(emailCheckTimer.value)
-      emailCheckTimer.value = null
-    }
-
-    form.value.email = email
-    validateField('email')
-    if (errors.email) return
-
-    emailCheckTimer.value = setTimeout(async () => {
-      const available = await storeAuth.checkEmailAvailability(email)
-      if (available === false) {
-        errors.email = 'El correo ya esta registrado.'
-      }
-    }, 350)
-  },
-)
-
 onBeforeUnmount(() => {
-  if (!emailCheckTimer.value) return
-  clearTimeout(emailCheckTimer.value)
-  emailCheckTimer.value = null
+  clearEmailTimer()
 })
 </script>
 
@@ -116,7 +129,7 @@ onBeforeUnmount(() => {
           autocomplete="username"
           placeholder="johndoe"
           :error="errors.username"
-          :on-value-change="(value) => (form.username = value)"
+          :on-value-change="handleUsernameValue"
           :on-validation="onValidation('username')"
           required
         />
@@ -127,7 +140,7 @@ onBeforeUnmount(() => {
           autocomplete="given-name"
           placeholder="John"
           :error="errors.firstName"
-          :on-value-change="(value) => (form.firstName = value)"
+          :on-value-change="handleFirstNameValue"
           :on-validation="onValidation('firstName')"
           required
         />
@@ -138,7 +151,7 @@ onBeforeUnmount(() => {
           autocomplete="family-name"
           placeholder="Doe"
           :error="errors.lastName"
-          :on-value-change="(value) => (form.lastName = value)"
+          :on-value-change="handleLastNameValue"
           :on-validation="onValidation('lastName')"
           required
         />
@@ -149,7 +162,7 @@ onBeforeUnmount(() => {
           autocomplete="email"
           placeholder="Ingresa tu correo"
           :error="errors.email"
-          :on-value-change="(value) => (form.email = value)"
+          :on-value-change="handleEmailValue"
           :on-validation="onValidation('email')"
           required
         />
@@ -160,7 +173,7 @@ onBeforeUnmount(() => {
           autocomplete="tel"
           placeholder="+1234567890"
           :error="errors.phoneNumber"
-          :on-value-change="(value) => (form.phoneNumber = value)"
+          :on-value-change="handlePhoneNumberValue"
           :on-validation="onValidation('phoneNumber')"
           required
         />

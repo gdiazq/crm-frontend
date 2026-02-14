@@ -1,5 +1,7 @@
 import type {
+  AuthUser,
   SettingDeviceSession,
+  SettingUpdateProfileForm,
   SettingUpdateAvatarPayload,
   SettingUpdateProfilePayload,
 } from '@/interfaces'
@@ -44,4 +46,13 @@ export const mapperKeepCurrentSettingDevices = (
   devices: SettingDeviceSession[],
 ): SettingDeviceSession[] => {
   return devices.filter((item) => item.current)
+}
+
+export const mapperSettingProfileForm = (user: AuthUser): SettingUpdateProfileForm => {
+  return {
+    email: user.email || '',
+    firstName: user.first_name || '',
+    lastName: user.last_name || '',
+    phoneNumber: user.phone_number || '',
+  }
 }

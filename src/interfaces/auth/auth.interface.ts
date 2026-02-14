@@ -7,9 +7,6 @@ export interface AuthUser {
   phone_number?: string | null
   avatar_url?: string | null
   roles: string[]
-  avatarUrl?: string | null
-  avatar?: string | null
-  profileImage?: string | null
 }
 
 export interface AuthLoginPayload {

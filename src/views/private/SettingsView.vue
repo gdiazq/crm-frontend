@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { InputComponent, TabsComponent } from '@/components'
 import { useFormValidation } from '@/composables'
@@ -8,7 +8,7 @@ import {
   initialUpdateProfileForm,
   settingsUpdateProfileValidationRules,
 } from '@/factories'
-import { mapperUpdateProfilePayload } from '@/mappers'
+import { mapperSettingProfileForm, mapperUpdateProfilePayload } from '@/mappers'
 import { useStoreAuth, useStoreSettings } from '@/stores'
 
 const storeAuth = useStoreAuth()
@@ -35,10 +35,12 @@ const {
   validateAll: validateProfile,
   onValidation: onProfileValidation,
 } = useFormValidation(profile, settingsUpdateProfileValidationRules)
+
 const userAvatarUrl = computed(() => {
   if (!user.value) return ''
-  return user.value.avatar_url || user.value.avatarUrl || user.value.avatar || user.value.profileImage || ''
+  return user.value.avatar_url || ''
 })
+
 const avatarDisplayUrl = computed(() => avatarForm.value.previewUrl || userAvatarUrl.value)
 const avatarInitials = computed(() => {
   const first = profile.value.firstName.trim().charAt(0)
@@ -55,6 +57,22 @@ const handleLogoutDevice = (id: string) => storeSettings.logoutDevice(id)
 const handleLogoutAllOtherDevices = () => storeSettings.logoutAllOtherDevices()
 const handleTabChange = (tab: 'account' | 'mfa') => {
   storeSettings.setActiveTab(tab)
+}
+
+const handleFirstNameValue = (value: string) => {
+  profile.value.firstName = value
+}
+
+const handleLastNameValue = (value: string) => {
+  profile.value.lastName = value
+}
+
+const handleEmailValue = (value: string) => {
+  profile.value.email = value
+}
+
+const handlePhoneNumberValue = (value: string) => {
+  profile.value.phoneNumber = value
 }
 
 const handleSaveProfile = async () => {
@@ -144,17 +162,14 @@ onBeforeUnmount(() => {
   clearAvatarPreview()
 })
 
-watch(
-  () => user.value,
-  (currentUser) => {
-    if (!currentUser) return
-    profile.value.email = currentUser.email || ''
-    profile.value.firstName = currentUser.first_name || ''
-    profile.value.lastName = currentUser.last_name || ''
-    profile.value.phoneNumber = currentUser.phone_number || ''
-  },
-  { immediate: true },
-)
+const handleInitialProfile = () => {
+  if (!user.value) return
+  profile.value = mapperSettingProfileForm(user.value)
+}
+
+onMounted(() => {
+  handleInitialProfile()
+})
 </script>
 
 <template>
@@ -240,7 +255,7 @@ watch(
           label="Nombre"
           type="text"
           :error="profileErrors.firstName"
-          :on-value-change="(value) => (profile.firstName = value)"
+          :on-value-change="handleFirstNameValue"
           :on-validation="onProfileValidation('firstName')"
           required
         />
@@ -250,7 +265,7 @@ watch(
           label="Apellido"
           type="text"
           :error="profileErrors.lastName"
-          :on-value-change="(value) => (profile.lastName = value)"
+          :on-value-change="handleLastNameValue"
           :on-validation="onProfileValidation('lastName')"
           required
         />
@@ -260,7 +275,7 @@ watch(
           label="Email"
           type="email"
           :error="profileErrors.email"
-          :on-value-change="(value) => (profile.email = value)"
+          :on-value-change="handleEmailValue"
           :on-validation="onProfileValidation('email')"
           required
         />
@@ -271,7 +286,7 @@ watch(
           type="tel"
           placeholder="+56912345678"
           :error="profileErrors.phoneNumber"
-          :on-value-change="(value) => (profile.phoneNumber = value)"
+          :on-value-change="handlePhoneNumberValue"
           :on-validation="onProfileValidation('phoneNumber')"
           required
         />

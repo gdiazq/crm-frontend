@@ -25,6 +25,7 @@ import {
   mapperFindSettingDeviceById,
   mapperKeepCurrentSettingDevices,
   mapperRemoveSettingDeviceById,
+  mapperSettingProfileForm,
   mapperUpdateAvatarFormData,
   mapperUpdateProfilePayload,
 } from './setting.mapper'
@@ -43,6 +44,7 @@ export {
   mapperFindSettingDeviceById,
   mapperKeepCurrentSettingDevices,
   mapperRemoveSettingDeviceById,
+  mapperSettingProfileForm,
   mapperUpdateAvatarFormData,
   mapperUpdateProfilePayload,
   mapperPasswordRequirements,

@@ -59,6 +59,14 @@ const handleTogglePassword = () => {
   showPassword.value = !showPassword.value
 }
 
+const handleEmailValue = (value: string) => {
+  form.value.email = value
+}
+
+const handlePasswordValue = (value: string) => {
+  form.value.password = value
+}
+
 const handleMicrosoftLogin = () => {
   storeAuth.loginError = true
   storeAuth.messageAlert = {
@@ -135,7 +143,7 @@ onBeforeUnmount(() => {
             autocomplete="username"
             placeholder="Ingresa tu correo"
             :error="errors.email"
-            :on-value-change="(value) => (form.email = value)"
+            :on-value-change="handleEmailValue"
             :on-validation="onValidation('email')"
             required
           />
@@ -149,7 +157,7 @@ onBeforeUnmount(() => {
             placeholder="••••••••"
             required
             :error="errors.password"
-            :on-value-change="(value) => (form.password = value)"
+            :on-value-change="handlePasswordValue"
             :on-validation="onValidation('password')"
             :show-visibility-toggle="true"
             :visibility-label="showPassword ? 'Ocultar' : 'Ver'"
