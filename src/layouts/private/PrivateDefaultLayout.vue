@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
-import { NotificationPanel } from '@/components'
+import { NotificationPanel, PrivateNavbar } from '@/components'
 import { useStoreAuth, useStoreNotification } from '@/stores'
 
 const router = useRouter()
@@ -18,10 +18,6 @@ const toggleNotificaciones = (event?: Event) => {
 
 const handleCloseNotificaciones = () => {
   slideNotificaciones.value = false
-}
-
-const handleGoHome = () => {
-  router.push('/')
 }
 
 const handleGoDashboard = () => {
@@ -81,55 +77,16 @@ onBeforeUnmount(() => {
     id="layout-private-default"
     class="layout-private-default min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100"
   >
-    <section class="mx-auto flex min-h-screen w-full max-w-7xl">
-      <aside class="hidden w-72 border-r border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900/60 lg:block">
-        <p class="text-sm font-semibold uppercase tracking-wide opacity-70">Menu privado</p>
-        <nav class="mt-6 space-y-2 text-sm">
-          <button
-            type="button"
-            class="block w-full rounded-lg px-3 py-2 text-left hover:bg-slate-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
-            @click="handleGoHome"
-          >
-            Inicio
-          </button>
-          <button
-            type="button"
-            class="block w-full rounded-lg px-3 py-2 text-left hover:bg-slate-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
-            @click="handleGoDashboard"
-          >
-            Dashboard
-          </button>
-          <button
-            type="button"
-            class="block w-full rounded-lg px-3 py-2 text-left hover:bg-slate-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
-            @click="handleGoLogout"
-          >
-            Salir
-          </button>
-        </nav>
-      </aside>
+    <section class="flex min-h-screen w-full flex-col">
+      <PrivateNavbar
+        :unread-count="unreadCount"
+        :on-go-dashboard="handleGoDashboard"
+        :on-go-logout="handleGoLogout"
+        :on-toggle-notifications="toggleNotificaciones"
+      />
 
-      <section class="flex min-h-screen flex-1 flex-col">
-        <header class="flex items-center justify-between border-b border-slate-200 bg-white/80 px-6 py-4 dark:border-white/10 dark:bg-slate-900/40">
-          <p class="text-sm font-semibold">Area privada</p>
-          <button
-            type="button"
-            class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold hover:border-cyan-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-cyan-300/60 dark:focus-visible:ring-offset-slate-950"
-            @click="toggleNotificaciones"
-          >
-            Notificaciones
-            <span
-              v-if="unreadCount > 0"
-              class="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-cyan-600 px-1.5 py-0.5 text-xs text-white dark:bg-cyan-400 dark:text-slate-900"
-            >
-              {{ unreadCount }}
-            </span>
-          </button>
-        </header>
-
-        <section class="flex-1 p-6">
-          <RouterView />
-        </section>
+      <section class="flex-1 p-6">
+        <RouterView />
       </section>
     </section>
 

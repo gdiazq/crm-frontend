@@ -29,6 +29,11 @@ import type {
   NotificationItem,
   NotificationVariant,
 } from './notification/notification.interface'
+import type {
+  ValidationOptions,
+  ValidationRule,
+  ValidationTrigger,
+} from './validation/validation.interface'
 
 export type {
   CrmFeature,
@@ -60,4 +65,7 @@ export type {
   NotificationApiItem,
   IncomingNotificationPayload,
   NotificationPagedFilters,
+  ValidationRule,
+  ValidationOptions,
+  ValidationTrigger,
 }

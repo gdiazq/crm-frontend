@@ -8,12 +8,16 @@ const props = withDefaults(
     required?: boolean
     autocomplete?: string
     minlength?: number
+    error?: string | null
+    onBlur?: () => void
     onValueChange?: (value: string) => void
   }>(),
   {
     type: 'password',
     placeholder: '',
     required: false,
+    error: null,
+    onBlur: undefined,
     onValueChange: undefined,
   },
 )
@@ -36,9 +40,18 @@ const handleInput = (event: Event) => {
         :autocomplete="props.autocomplete"
         :minlength="props.minlength"
         :placeholder="props.placeholder"
-        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus-visible:ring-offset-slate-950"
+        :class="[
+          'w-full rounded-lg bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-offset-slate-50 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus-visible:ring-offset-slate-950',
+          props.error
+            ? 'border border-rose-400 focus-visible:ring-rose-400 dark:border-rose-400 dark:focus-visible:ring-rose-400'
+            : 'border border-slate-300 focus-visible:ring-cyan-400 dark:border-slate-700 dark:focus-visible:ring-cyan-400',
+        ]"
         @input="handleInput"
+        @blur="props.onBlur?.()"
       />
     </div>
+    <p v-if="props.error" class="mt-1 text-xs text-rose-500 dark:text-rose-400">
+      {{ props.error }}
+    </p>
   </label>
 </template>

@@ -3,7 +3,8 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle } from '@/components'
-import { initialRegisterForm } from '@/factories'
+import { initialRegisterForm, registerValidationRules } from '@/factories'
+import { useFormValidation } from '@/composables'
 import { mapperRegisterPayload } from '@/mappers'
 import { useStoreAuth, useStoreTheme } from '@/stores'
 
@@ -14,54 +15,25 @@ const { isDark } = storeToRefs(storeTheme)
 const { errorMessage, registerSubmitting, checkEmailSubmitting, emailAvailable } = storeToRefs(storeAuth)
 
 const form = ref({ ...initialRegisterForm })
-
-const controlIsValidForm = computed(() => {
-  return Object.values(form.value).every((value) => Boolean(value))
-})
+const { errors, isValid, validateField, validateAll, onBlur } = useFormValidation(form, registerValidationRules)
 const controlCanSubmit = computed(() => {
-  return controlIsValidForm.value && emailAvailable.value !== false && !checkEmailSubmitting.value
+  return isValid.value && emailAvailable.value !== false && !checkEmailSubmitting.value
 })
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const emailCheckTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
-const handleUsernameValue = (value: string) => {
-  form.value.username = value
-}
-
-const handleFirstNameValue = (value: string) => {
-  form.value.firstName = value
-}
-
-const handleLastNameValue = (value: string) => {
-  form.value.lastName = value
-}
-
-const handlePhoneNumberValue = (value: string) => {
-  form.value.phoneNumber = value
-}
-
-const handleEmailValue = (value: string) => {
-  form.value.email = value
-}
-
-const handleMessageAlert = (message: string) => {
-  errorMessage.value = message
-}
-
 const submitForm = async () => {
-  if (!controlIsValidForm.value) {
-    handleMessageAlert('Debes completar todos los campos obligatorios.')
+  if (!validateAll()) {
     return
   }
 
   const available = await storeAuth.checkEmailAvailability(form.value.email.trim())
   if (available === false) {
-    handleMessageAlert('El correo ya esta registrado.')
+    errors.email = 'El correo ya esta registrado.'
     return
   }
   if (available === null) {
-    handleMessageAlert('No se pudo validar el correo. Intenta nuevamente.')
+    errorMessage.value = 'No se pudo validar el correo. Intenta nuevamente.'
     return
   }
 
@@ -89,16 +61,22 @@ watch(
     const email = value.trim()
     errorMessage.value = null
     emailAvailable.value = null
+    errors.email = null
 
     if (emailCheckTimer.value) {
       clearTimeout(emailCheckTimer.value)
       emailCheckTimer.value = null
     }
 
-    if (!emailRegex.test(email)) return
+    form.value.email = email
+    validateField('email')
+    if (errors.email) return
 
     emailCheckTimer.value = setTimeout(async () => {
-      await storeAuth.checkEmailAvailability(email)
+      const available = await storeAuth.checkEmailAvailability(email)
+      if (available === false) {
+        errors.email = 'El correo ya esta registrado.'
+      }
     }, 350)
   },
 )
@@ -137,7 +115,9 @@ onBeforeUnmount(() => {
           type="text"
           autocomplete="username"
           placeholder="johndoe"
-          :on-value-change="handleUsernameValue"
+          :error="errors.username"
+          :on-value-change="(value) => (form.username = value)"
+          :on-blur="onBlur('username')"
           required
         />
         <InputComponent
@@ -146,7 +126,9 @@ onBeforeUnmount(() => {
           type="text"
           autocomplete="given-name"
           placeholder="John"
-          :on-value-change="handleFirstNameValue"
+          :error="errors.firstName"
+          :on-value-change="(value) => (form.firstName = value)"
+          :on-blur="onBlur('firstName')"
           required
         />
         <InputComponent
@@ -155,7 +137,9 @@ onBeforeUnmount(() => {
           type="text"
           autocomplete="family-name"
           placeholder="Doe"
-          :on-value-change="handleLastNameValue"
+          :error="errors.lastName"
+          :on-value-change="(value) => (form.lastName = value)"
+          :on-blur="onBlur('lastName')"
           required
         />
         <InputComponent
@@ -164,7 +148,9 @@ onBeforeUnmount(() => {
           type="email"
           autocomplete="email"
           placeholder="tu@empresa.com"
-          :on-value-change="handleEmailValue"
+          :error="errors.email"
+          :on-value-change="(value) => (form.email = value)"
+          :on-blur="onBlur('email')"
           required
         />
         <InputComponent
@@ -173,7 +159,9 @@ onBeforeUnmount(() => {
           type="tel"
           autocomplete="tel"
           placeholder="+1234567890"
-          :on-value-change="handlePhoneNumberValue"
+          :error="errors.phoneNumber"
+          :on-value-change="(value) => (form.phoneNumber = value)"
+          :on-blur="onBlur('phoneNumber')"
           required
         />
 

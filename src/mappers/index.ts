@@ -21,6 +21,10 @@ import {
   mapperNotification,
   mapperNotificationFromPayload,
 } from './notification.mapper'
+import {
+  mapperIsFormValid,
+  mapperValidateField,
+} from './validation.mapper'
 
 export {
   mapperCreatePasswordPayload,
@@ -42,4 +46,6 @@ export {
   mapperNotificationIds,
   mapperNotificationIdsToNumbers,
   mapperNotificationIdToNumber,
+  mapperValidateField,
+  mapperIsFormValid,
 }

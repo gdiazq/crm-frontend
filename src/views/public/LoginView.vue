@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, PasswordInputComponent, ThemeToggle } from '@/components'
-import { initialLoginForm } from '@/factories'
+import { loginValidationRules, initialLoginForm } from '@/factories'
+import { useFormValidation } from '@/composables'
 import { mapperLoginPayload } from '@/mappers'
 import { useStoreAuth, useStoreTheme } from '@/stores'
 
@@ -14,22 +14,11 @@ const storeTheme = useStoreTheme()
 const { isDark } = storeToRefs(storeTheme)
 const form = ref({ ...initialLoginForm })
 const remindMe = ref(false)
-
-const controlIsValidForm = computed(() => {
-  return Object.values(form.value).every((value) => Boolean(value))
-})
+const { errors, validateAll, onBlur } = useFormValidation(form, loginValidationRules)
 
 const controlLoginAlert = computed(() => {
   return storeAuth.loginError
 })
-
-const handleEmailValue = (value: string) => {
-  form.value.email = value
-}
-
-const handlePasswordValue = (value: string) => {
-  form.value.password = value
-}
 
 const handleMessageAlert = (message?: string) => {
   storeAuth.loginError = true
@@ -41,8 +30,7 @@ const handleMessageAlert = (message?: string) => {
 }
 
 const submitForm = async () => {
-  if (!controlIsValidForm.value) {
-    handleMessageAlert()
+  if (!validateAll()) {
     return
   }
 
@@ -53,14 +41,12 @@ const submitForm = async () => {
     return
   }
 
-  if (success) {
-    if (remindMe.value) {
-      localStorage.setItem('rememberEmail', form.value.email)
-    } else {
-      localStorage.removeItem('rememberEmail')
-    }
-    router.push('/dashboard')
+  if (remindMe.value) {
+    localStorage.setItem('rememberEmail', form.value.email)
+  } else {
+    localStorage.removeItem('rememberEmail')
   }
+  router.push('/dashboard')
 }
 
 const handleRecovery = () => {
@@ -90,7 +76,7 @@ onMounted(() => {
   }
   const rememberedEmail = localStorage.getItem('rememberEmail')
   if (rememberedEmail) {
-    handleEmailValue(rememberedEmail)
+    form.value.email = rememberedEmail
     remindMe.value = true
   }
 })
@@ -143,7 +129,9 @@ onBeforeUnmount(() => {
             type="text"
             autocomplete="username"
             placeholder="usuario o correo"
-            :on-value-change="handleEmailValue"
+            :error="errors.email"
+            :on-value-change="(value) => (form.email = value)"
+            :on-blur="onBlur('email')"
             required
           />
 
@@ -154,7 +142,9 @@ onBeforeUnmount(() => {
             autocomplete="current-password"
             placeholder="••••••••"
             required
-            :on-value-change="handlePasswordValue"
+            :error="errors.password"
+            :on-value-change="(value) => (form.password = value)"
+            :on-blur="onBlur('password')"
           />
 
           <div class="flex items-center justify-between text-sm">

@@ -4,9 +4,11 @@ import { computed } from 'vue'
 const props = withDefaults(defineProps<{
   modelValue: string
   length?: number
+  error?: string | null
   onValueChange?: (value: string) => void
 }>(), {
   length: 6,
+  error: null,
   onValueChange: undefined,
 })
 
@@ -45,9 +47,17 @@ const handlePaste = (event: ClipboardEvent) => {
         pattern="[0-9]*"
         maxlength="1"
         autocomplete="one-time-code"
-        class="h-12 w-full rounded-lg border border-slate-300 bg-white text-center text-lg font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus-visible:ring-offset-slate-950"
+        :class="[
+          'h-12 w-full rounded-lg bg-white text-center text-lg font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-offset-slate-50 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus-visible:ring-offset-slate-950',
+          props.error
+            ? 'border border-rose-400 focus-visible:ring-rose-400 dark:border-rose-400 dark:focus-visible:ring-rose-400'
+            : 'border border-slate-300 focus-visible:ring-cyan-400 dark:border-slate-700 dark:focus-visible:ring-cyan-400',
+        ]"
         @input="handleInput(index, $event)"
       />
     </div>
+    <p v-if="props.error" class="mt-1 text-xs text-rose-500 dark:text-rose-400">
+      {{ props.error }}
+    </p>
   </div>
 </template>

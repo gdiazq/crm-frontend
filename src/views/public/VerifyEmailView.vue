@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, ResendVerificationModal, ThemeToggle, VerificationCodeInputComponent } from '@/components'
-import { initialResendVerificationForm, initialVerifyEmailForm } from '@/factories'
+import { initialResendVerificationForm, initialVerifyEmailForm, verifyEmailValidationRules } from '@/factories'
+import { useFormValidation } from '@/composables'
 import { mapperResendVerificationPayload, mapperVerifyEmailPayload } from '@/mappers'
 import { useStoreAuth, useStoreTheme } from '@/stores'
 
@@ -17,10 +18,7 @@ const form = ref({ ...initialVerifyEmailForm })
 const resendForm = ref({ ...initialResendVerificationForm })
 const showResendModal = ref(false)
 const resendModalError = ref<string | null>(null)
-
-const controlIsValidForm = computed(() => {
-  return Boolean(pendingVerifyEmail.value && form.value.code)
-})
+const { errors, validateAll } = useFormValidation(form, verifyEmailValidationRules)
 
 const handleCodeValue = (value: string) => {
   form.value.code = value
@@ -88,12 +86,16 @@ const handleResendPhoneValue = (value: string) => {
 }
 
 const submitForm = async () => {
-  if (!controlIsValidForm.value) {
+  if (!pendingVerifyEmail.value) {
     handleMessageAlert('No se encontro el correo a verificar o falta el codigo.')
     return
   }
 
-  const payload = mapperVerifyEmailPayload(pendingVerifyEmail.value || '', form.value.code)
+  if (!validateAll()) {
+    return
+  }
+
+  const payload = mapperVerifyEmailPayload(pendingVerifyEmail.value, form.value.code)
   const success = await storeAuth.verifyEmail(payload)
   if (success) {
     router.push('/create-password')
@@ -133,7 +135,7 @@ onMounted(() => {
         </p>
 
         <form class="mt-7 space-y-4" @submit.prevent="submitForm">
-          <VerificationCodeInputComponent :model-value="form.code" :on-value-change="handleCodeValue" />
+          <VerificationCodeInputComponent :model-value="form.code" :error="errors.code" :on-value-change="handleCodeValue" />
 
           <button
             type="button"

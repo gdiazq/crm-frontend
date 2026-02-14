@@ -15,6 +15,11 @@ import {
   initialStatusNotification,
   initialTabNotification,
 } from './notification.factory'
+import {
+  loginValidationRules,
+  registerValidationRules,
+  verifyEmailValidationRules,
+} from './validation.factory'
 
 export {
   initialCreatePasswordForm,
@@ -30,4 +35,7 @@ export {
   initialStatusNotification,
   initialErrorMessageNotification,
   initialLoadingNotification,
+  loginValidationRules,
+  registerValidationRules,
+  verifyEmailValidationRules,
 }
