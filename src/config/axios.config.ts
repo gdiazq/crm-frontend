@@ -1,5 +1,4 @@
 import axios from 'axios'
-import router from '@/router'
 
 import { APP_URL } from '@/constants'
 
@@ -43,7 +42,6 @@ axiosInstance.interceptors.response.use(function (response) {
 
   const alreadyRetried = Reflect.get(originalRequest, '_retry')
   if (alreadyRetried) {
-    router.push('/logout')
     return Promise.reject(error)
   }
 
@@ -73,7 +71,6 @@ axiosInstance.interceptors.response.use(function (response) {
     return axiosInstance(originalRequest)
   } catch (refreshError) {
     resolvePendingRequests(false)
-    router.push('/logout')
     return Promise.reject(refreshError)
   } finally {
     isRefreshingToken = false

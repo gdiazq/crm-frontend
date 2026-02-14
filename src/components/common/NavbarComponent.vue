@@ -5,6 +5,7 @@ const props = defineProps<{
   unreadCount: number
   userLabel?: string
   userEmail?: string
+  avatarUrl?: string
   isDark: boolean
   onGoDashboard: () => void
   settingsDropdownOpen: boolean
@@ -34,6 +35,7 @@ const props = defineProps<{
         :open="props.settingsDropdownOpen"
         :user-label="props.userLabel"
         :user-email="props.userEmail"
+        :avatar-url="props.avatarUrl"
         :unread-count="props.unreadCount"
         :is-dark="props.isDark"
         :on-toggle="props.onToggleSettingsDropdown"

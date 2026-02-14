@@ -5,6 +5,8 @@ import {
   initialPasswordRequirements,
   initialRegisterForm,
   initialResendVerificationForm,
+  initialUpdateAvatarForm,
+  initialUpdateProfileForm,
   initialVerifyEmailForm,
 } from './auth.factory'
 import {
@@ -18,6 +20,7 @@ import {
 import {
   loginValidationRules,
   registerValidationRules,
+  updateProfileValidationRules,
   verifyEmailValidationRules,
 } from './validation.factory'
 
@@ -28,6 +31,8 @@ export {
   initialPasswordRequirements,
   initialRegisterForm,
   initialResendVerificationForm,
+  initialUpdateAvatarForm,
+  initialUpdateProfileForm,
   initialVerifyEmailForm,
   initialCounterNotification,
   initialNotifications,
@@ -37,5 +42,6 @@ export {
   initialLoadingNotification,
   loginValidationRules,
   registerValidationRules,
+  updateProfileValidationRules,
   verifyEmailValidationRules,
 }

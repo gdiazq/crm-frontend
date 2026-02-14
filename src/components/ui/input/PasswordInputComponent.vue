@@ -11,6 +11,9 @@ const props = withDefaults(
     error?: string | null
     onBlur?: () => void
     onValueChange?: (value: string) => void
+    showVisibilityToggle?: boolean
+    visibilityLabel?: string
+    onToggleVisibility?: () => void
   }>(),
   {
     type: 'password',
@@ -19,6 +22,9 @@ const props = withDefaults(
     error: null,
     onBlur: undefined,
     onValueChange: undefined,
+    showVisibilityToggle: false,
+    visibilityLabel: 'Ver',
+    onToggleVisibility: undefined,
   },
 )
 
@@ -45,10 +51,19 @@ const handleInput = (event: Event) => {
           props.error
             ? 'border border-rose-400 focus-visible:ring-rose-400 dark:border-rose-400 dark:focus-visible:ring-rose-400'
             : 'border border-slate-300 focus-visible:ring-cyan-400 dark:border-slate-700 dark:focus-visible:ring-cyan-400',
+          props.showVisibilityToggle && 'pr-14',
         ]"
         @input="handleInput"
         @blur="props.onBlur?.()"
       />
+      <button
+        v-if="props.showVisibilityToggle"
+        type="button"
+        class="absolute inset-y-0 right-2 my-auto h-8 rounded-md px-2 text-sm text-slate-600 hover:text-cyan-700 dark:text-slate-300 dark:hover:text-cyan-300"
+        @click="props.onToggleVisibility?.()"
+      >
+        {{ props.visibilityLabel }}
+      </button>
     </div>
     <p v-if="props.error" class="mt-1 text-xs text-rose-500 dark:text-rose-400">
       {{ props.error }}

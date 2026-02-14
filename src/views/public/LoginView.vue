@@ -14,6 +14,7 @@ const storeTheme = useStoreTheme()
 const { isDark } = storeToRefs(storeTheme)
 const form = ref({ ...initialLoginForm })
 const remindMe = ref(false)
+const showPassword = ref(false)
 const { errors, validateAll, onBlur } = useFormValidation(form, loginValidationRules)
 
 const controlLoginAlert = computed(() => {
@@ -52,6 +53,10 @@ const submitForm = async () => {
 const handleRecovery = () => {
   storeAuth.loginError = false
   router.push('/recovery')
+}
+
+const handleTogglePassword = () => {
+  showPassword.value = !showPassword.value
 }
 
 const handleMicrosoftLogin = () => {
@@ -138,6 +143,7 @@ onBeforeUnmount(() => {
           <PasswordInputComponent
             :model-value="form.password"
             label="Contraseña"
+            :type="showPassword ? 'text' : 'password'"
             :minlength="6"
             autocomplete="current-password"
             placeholder="••••••••"
@@ -145,6 +151,9 @@ onBeforeUnmount(() => {
             :error="errors.password"
             :on-value-change="(value) => (form.password = value)"
             :on-blur="onBlur('password')"
+            :show-visibility-toggle="true"
+            :visibility-label="showPassword ? 'Ocultar' : 'Ver'"
+            :on-toggle-visibility="handleTogglePassword"
           />
 
           <div class="flex items-center justify-between text-sm">

@@ -4,6 +4,8 @@ import type {
   AuthLoginForm,
   AuthRegisterForm,
   AuthResendVerificationForm,
+  AuthUpdateAvatarForm,
+  AuthUpdateProfileForm,
   AuthVerifyEmailForm,
   PasswordRequirement,
 } from '@/interfaces'
@@ -36,6 +38,18 @@ export const initialVerifyEmailForm: AuthVerifyEmailForm = {
 
 export const initialResendVerificationForm: AuthResendVerificationForm = {
   phoneNumber: '',
+}
+
+export const initialUpdateProfileForm: AuthUpdateProfileForm = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  phoneNumber: '',
+}
+
+export const initialUpdateAvatarForm: AuthUpdateAvatarForm = {
+  file: null,
+  previewUrl: '',
 }
 
 export const initialPasswordRequirements: PasswordRequirement[] = [

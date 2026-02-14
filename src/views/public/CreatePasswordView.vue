@@ -16,6 +16,8 @@ const { isDark } = storeToRefs(storeTheme)
 const { createPasswordSubmitting, errorMessage, successMessage, pendingPasswordToken, pendingPasswordTokenIssuedAt } = storeToRefs(storeAuth)
 
 const form = ref({ ...initialCreatePasswordForm })
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 const remainingSeconds = ref(0)
 let expirationTimer: ReturnType<typeof setTimeout> | null = null
 let countdownTimer: ReturnType<typeof setInterval> | null = null
@@ -38,6 +40,14 @@ const handlePasswordValue = (value: string) => {
 
 const handleConfirmPasswordValue = (value: string) => {
   form.value.confirmPassword = value
+}
+
+const handleTogglePassword = () => {
+  showPassword.value = !showPassword.value
+}
+
+const handleToggleConfirmPassword = () => {
+  showConfirmPassword.value = !showConfirmPassword.value
 }
 
 const handleMessageAlert = (message: string) => {
@@ -156,18 +166,26 @@ onBeforeUnmount(() => {
           <PasswordInputComponent
             :model-value="form.password"
             label="Nueva contraseña"
+            :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
             :minlength="10"
             :on-value-change="handlePasswordValue"
+            :show-visibility-toggle="true"
+            :visibility-label="showPassword ? 'Ocultar' : 'Ver'"
+            :on-toggle-visibility="handleTogglePassword"
             required
           />
 
           <PasswordInputComponent
             :model-value="form.confirmPassword"
             label="Confirmar contraseña"
+            :type="showConfirmPassword ? 'text' : 'password'"
             autocomplete="new-password"
             :minlength="10"
             :on-value-change="handleConfirmPasswordValue"
+            :show-visibility-toggle="true"
+            :visibility-label="showConfirmPassword ? 'Ocultar' : 'Ver'"
+            :on-toggle-visibility="handleToggleConfirmPassword"
             required
           />
 

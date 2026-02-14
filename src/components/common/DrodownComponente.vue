@@ -3,6 +3,7 @@ const props = defineProps<{
   open: boolean
   userLabel?: string
   userEmail?: string
+  avatarUrl?: string
   unreadCount: number
   isDark: boolean
   onToggle: () => void
@@ -21,7 +22,16 @@ const props = defineProps<{
       class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm font-semibold hover:border-cyan-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-cyan-300/60 dark:focus-visible:ring-offset-slate-950"
       @click="props.onToggle"
     >
-      <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-cyan-100 text-xs font-bold text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300">
+      <img
+        v-if="props.avatarUrl"
+        :src="props.avatarUrl"
+        alt="Avatar de usuario"
+        class="h-7 w-7 rounded-full object-cover"
+      >
+      <span
+        v-else
+        class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-cyan-100 text-xs font-bold text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300"
+      >
         {{ (props.userLabel || 'U').slice(0, 1).toUpperCase() }}
       </span>
       <span class="ml-2 max-w-24 truncate text-sm">

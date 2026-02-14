@@ -80,7 +80,16 @@ const formatNotificationTimestamp = (value: string) => {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
-onMounted(() => {
+onMounted(async () => {
+  if (!storeAuth.user) {
+    try {
+      await storeAuth.getCurrentUser()
+    } catch {
+      router.push('/login')
+      return
+    }
+  }
+
   const userId = storeAuth.user?.id
   if (!userId) return
 
@@ -106,6 +115,7 @@ onBeforeUnmount(() => {
         :unread-count="unreadCount"
         :user-label="storeAuth.user?.username || storeAuth.user?.email || 'Usuario'"
         :user-email="storeAuth.user?.email || ''"
+        :avatar-url="storeAuth.user?.avatar_url || storeAuth.user?.avatarUrl || storeAuth.user?.avatar || storeAuth.user?.profileImage || ''"
         :is-dark="isDark"
         :on-go-dashboard="handleGoDashboard"
         :settings-dropdown-open="slideSettings"

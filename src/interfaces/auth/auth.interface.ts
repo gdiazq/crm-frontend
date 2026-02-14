@@ -4,7 +4,12 @@ export interface AuthUser {
   email: string
   first_name: string
   last_name: string
+  phone_number?: string | null
+  avatar_url?: string | null
   roles: string[]
+  avatarUrl?: string | null
+  avatar?: string | null
+  profileImage?: string | null
 }
 
 export interface AuthLoginPayload {
@@ -82,6 +87,29 @@ export interface AuthResendVerificationPayload {
 
 export interface AuthResendVerificationForm {
   phoneNumber: string
+}
+
+export interface AuthUpdateProfilePayload {
+  email: string
+  firstName: string
+  lastName: string
+  phoneNumber: string
+}
+
+export interface AuthUpdateProfileForm {
+  email: string
+  firstName: string
+  lastName: string
+  phoneNumber: string
+}
+
+export interface AuthUpdateAvatarPayload {
+  file: File
+}
+
+export interface AuthUpdateAvatarForm {
+  file: File | null
+  previewUrl: string
 }
 
 export interface AlertsCore {

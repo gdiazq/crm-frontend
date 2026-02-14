@@ -16,3 +16,10 @@ export const registerValidationRules: Record<string, ValidationRule> = {
 export const verifyEmailValidationRules: Record<string, ValidationRule> = {
   code: { required: true, minLength: 6 },
 }
+
+export const updateProfileValidationRules: Record<string, ValidationRule> = {
+  firstName: { required: true, minLength: 2 },
+  lastName: { required: true, minLength: 2 },
+  email: { required: true, email: true },
+  phoneNumber: { required: true, pattern: /^\+?[0-9]{8,15}$/ },
+}

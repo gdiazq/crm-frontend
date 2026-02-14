@@ -4,6 +4,8 @@ import type {
   AuthLoginPayload,
   AuthRegisterPayload,
   AuthResendVerificationPayload,
+  AuthUpdateAvatarPayload,
+  AuthUpdateProfilePayload,
   AuthVerifyEmailPayload,
   PasswordRequirement,
 } from '@/interfaces'
@@ -54,6 +56,26 @@ export const mapperResendVerificationPayload = (email: string, phoneNumber: stri
     email: email.trim(),
     phoneNumber: phoneNumber.trim(),
   }
+}
+
+export const mapperUpdateProfilePayload = (
+  email: string,
+  firstName: string,
+  lastName: string,
+  phoneNumber: string,
+): AuthUpdateProfilePayload => {
+  return {
+    email: email.trim(),
+    firstName: firstName.trim(),
+    lastName: lastName.trim(),
+    phoneNumber: phoneNumber.trim(),
+  }
+}
+
+export const mapperUpdateAvatarFormData = (payload: AuthUpdateAvatarPayload): FormData => {
+  const formData = new FormData()
+  formData.append('file', payload.file)
+  return formData
 }
 
 export const mapperPasswordRequirements = (password: string, minLength = 10): PasswordRequirement[] => {

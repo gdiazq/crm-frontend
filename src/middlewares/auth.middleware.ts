@@ -13,7 +13,7 @@ export async function handleAuthentication(
   const isLogoutRoute = to.path === '/logout'
 
   try {
-    if (requiresAuth && !storeAuth.user && !storeAuth.loadingUser) {
+    if (requiresAuth && !storeAuth.user) {
       await storeAuth.getCurrentUser()
     }
   } catch {

@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import axios from 'axios'
 import { axiosInstance } from '@/config'
 import { useAuthSessionStorage } from '@/composables'
+import { mapperUpdateAvatarFormData } from '@/mappers'
 import type {
   AlertsCore,
   AuthCheckEmailResponse,
@@ -11,6 +12,8 @@ import type {
   AuthLoginPayload,
   AuthResendVerificationPayload,
   AuthRegisterPayload,
+  AuthUpdateAvatarPayload,
+  AuthUpdateProfilePayload,
   AuthVerifyEmailResponse,
   AuthVerifyEmailPayload,
   AuthUser,
@@ -43,6 +46,8 @@ export const useStoreAuth = defineStore('auth', () => {
   const createPasswordSubmitting = ref(false)
   const resendSubmitting = ref(false)
   const checkEmailSubmitting = ref(false)
+  const updateProfileSubmitting = ref(false)
+  const updateAvatarSubmitting = ref(false)
   const loginError = ref(false)
   const messageAlert = ref<AlertsCore>({ ...initialAlert })
   const successMessage = ref<string | null>(null)
@@ -84,6 +89,14 @@ export const useStoreAuth = defineStore('auth', () => {
       user.value = data.user
       permissions.value = data.modules || []
       await getUserConfig()
+
+      try {
+        const { data: fullProfile } = await axiosInstance.get<AuthUser>('/auth/me')
+        user.value = fullProfile
+      } catch {
+        // Login data is sufficient to proceed
+      }
+
       successMessage.value = 'Inicio de sesion exitoso.'
       return true
     } catch (error) {
@@ -310,6 +323,77 @@ export const useStoreAuth = defineStore('auth', () => {
     }
   }
 
+  const updateProfile = async (userId: number, payload: AuthUpdateProfilePayload) => {
+    try {
+      updateProfileSubmitting.value = true
+      errorMessage.value = null
+
+      await axiosInstance.post('/user/update', payload, {
+        params: { id: userId },
+      })
+
+      if (user.value) {
+        user.value = {
+          ...user.value,
+          email: payload.email,
+          first_name: payload.firstName,
+          last_name: payload.lastName,
+          phone_number: payload.phoneNumber,
+        }
+      }
+
+      successMessage.value = 'Informacion de cuenta actualizada correctamente.'
+      return true
+    } catch (error) {
+      errorBack.value = error
+      let message = 'No se pudo actualizar la informacion de cuenta.'
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status
+        if (status === 400) message = 'Datos invalidos para actualizar el perfil.'
+        if (status === 404) message = 'No se encontro el usuario a actualizar.'
+      }
+
+      errorMessage.value = message
+      return false
+    } finally {
+      updateProfileSubmitting.value = false
+    }
+  }
+
+  const updateAvatar = async (userId: number, payload: AuthUpdateAvatarPayload) => {
+    try {
+      updateAvatarSubmitting.value = true
+      errorMessage.value = null
+
+      const formData = mapperUpdateAvatarFormData(payload)
+      await axiosInstance.post(`/user/${userId}/avatar`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+
+      await getCurrentUser()
+
+      successMessage.value = 'Avatar actualizado correctamente.'
+      return true
+    } catch (error) {
+      errorBack.value = error
+      let message = 'No se pudo actualizar el avatar.'
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status
+        if (status === 400) message = 'El archivo de avatar es invalido.'
+        if (status === 404) message = 'No se encontro el usuario para actualizar avatar.'
+      }
+
+      errorMessage.value = message
+      return false
+    } finally {
+      updateAvatarSubmitting.value = false
+    }
+  }
+
   async function getCurrentUser() {
     if (currentUserRequest) return currentUserRequest
 
@@ -317,14 +401,16 @@ export const useStoreAuth = defineStore('auth', () => {
 
     currentUserRequest = (async () => {
       try {
-        const { data } = await axiosInstance.get<{ user: AuthUser; modules?: ModulePermission[] }>('/auth/me')
-        user.value = data.user
-        permissions.value = data.modules || []
+        const { data } = await axiosInstance.get<AuthUser>('/auth/me')
+        user.value = data
         await getUserConfig()
       } catch (error) {
-        user.value = null
-        permissions.value = []
         errorBack.value = error
+        if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
+          user.value = null
+          permissions.value = []
+        }
+        throw error
       } finally {
         loadingUser.value = false
         currentUserRequest = null
@@ -407,6 +493,8 @@ export const useStoreAuth = defineStore('auth', () => {
     createPasswordSubmitting,
     resendSubmitting,
     checkEmailSubmitting,
+    updateProfileSubmitting,
+    updateAvatarSubmitting,
     loginError,
     messageAlert,
     successMessage,
@@ -427,6 +515,8 @@ export const useStoreAuth = defineStore('auth', () => {
     verifyEmail,
     resendVerification,
     createPassword,
+    updateProfile,
+    updateAvatar,
     getCurrentUser,
     reset,
     logout,
