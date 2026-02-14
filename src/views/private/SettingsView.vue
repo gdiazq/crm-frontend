@@ -3,32 +3,26 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { InputComponent } from '@/components'
 import { useFormValidation } from '@/composables'
-import { initialUpdateAvatarForm, initialUpdateProfileForm, updateProfileValidationRules } from '@/factories'
+import {
+  initialUpdateAvatarForm,
+  initialUpdateProfileForm,
+  settingsUpdateProfileValidationRules,
+} from '@/factories'
 import { mapperUpdateProfilePayload } from '@/mappers'
-import { useStoreAuth } from '@/stores'
-
-interface MockDeviceSession {
-  id: string
-  name: string
-  location: string
-  lastSeen: string
-  current: boolean
-}
+import { useStoreAuth, useStoreSettings } from '@/stores'
 
 const storeAuth = useStoreAuth()
+const storeSettings = useStoreSettings()
 const { user, updateProfileSubmitting, updateAvatarSubmitting } = storeToRefs(storeAuth)
-
-const mfaEnabled = ref(false)
-const mfaVerified = ref(false)
-const mfaMethod = ref('Authenticator App (TOTP)')
-const mfaLastVerification = ref('Sin verificacion reciente')
-const statusMessage = ref('Configuracion usando datos mock para integrar backend luego.')
-
-const mfaSetupSteps = [
-  '1. Instala Google Authenticator, Microsoft Authenticator o Authy.',
-  '2. Escanea el QR de configuracion de 2FA.',
-  '3. Ingresa el codigo de 6 digitos para confirmar setup.',
-]
+const {
+  mfaState,
+  statusMessage,
+  devices,
+  mfaSetupSteps,
+  activeSessions,
+  mfaStatusLabel,
+  mfaStatusClass,
+} = storeToRefs(storeSettings)
 
 const profile = ref({ ...initialUpdateProfileForm })
 const avatarForm = ref({ ...initialUpdateAvatarForm })
@@ -37,35 +31,8 @@ const avatarInputRef = ref<HTMLInputElement | null>(null)
 const {
   errors: profileErrors,
   validateAll: validateProfile,
-  onBlur: onProfileBlur,
-} = useFormValidation(profile, updateProfileValidationRules)
-
-const devices = ref<MockDeviceSession[]>([
-  {
-    id: 'device-1',
-    name: 'MacBook Pro - Chrome',
-    location: 'Santiago, CL',
-    lastSeen: 'Ahora',
-    current: true,
-  },
-  {
-    id: 'device-2',
-    name: 'iPhone 15 - Safari',
-    location: 'Santiago, CL',
-    lastSeen: 'Hace 2 horas',
-    current: false,
-  },
-  {
-    id: 'device-3',
-    name: 'Windows 11 - Edge',
-    location: 'Valparaiso, CL',
-    lastSeen: 'Ayer',
-    current: false,
-  },
-])
-
-const activeSessions = computed(() => devices.value.length)
-const otherSessions = computed(() => devices.value.filter((device) => !device.current))
+  onValidation: onProfileValidation,
+} = useFormValidation(profile, settingsUpdateProfileValidationRules)
 const userAvatarUrl = computed(() => {
   if (!user.value) return ''
   return user.value.avatar_url || user.value.avatarUrl || user.value.avatar || user.value.profileImage || ''
@@ -77,78 +44,36 @@ const avatarInitials = computed(() => {
   const value = `${first}${last}`.trim().toUpperCase()
   return value || 'U'
 })
-const mfaStatusLabel = computed(() => (mfaEnabled.value ? 'Habilitado' : 'Deshabilitado'))
-const mfaStatusClass = computed(() => (mfaEnabled.value ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'))
-
-const handleEnableMfa = () => {
-  mfaEnabled.value = true
-  statusMessage.value = 'MFA habilitado (mock). Completa verificacion para estado seguro.'
-}
-
-const handleDisableMfa = () => {
-  mfaEnabled.value = false
-  mfaVerified.value = false
-  mfaLastVerification.value = 'Sin verificacion reciente'
-  statusMessage.value = 'MFA deshabilitado (mock).'
-}
-
-const handleVerifyMfa = () => {
-  if (!mfaEnabled.value) {
-    statusMessage.value = 'Primero debes habilitar MFA para verificar su estado.'
-    return
-  }
-
-  mfaVerified.value = true
-  mfaLastVerification.value = 'Hace 1 minuto'
-  statusMessage.value = 'MFA verificado correctamente (mock).'
-}
-
-const handleLogoutDevice = (id: string) => {
-  const device = devices.value.find((item) => item.id === id)
-  if (!device) return
-
-  if (device.current) {
-    statusMessage.value = 'No puedes desloguear la sesion actual desde este mock.'
-    return
-  }
-
-  devices.value = devices.value.filter((item) => item.id !== id)
-  statusMessage.value = `Sesion cerrada para ${device.name} (mock).`
-}
-
-const handleLogoutAllOtherDevices = () => {
-  if (otherSessions.value.length === 0) {
-    statusMessage.value = 'No hay otros dispositivos activos.'
-    return
-  }
-
-  devices.value = devices.value.filter((device) => device.current)
-  statusMessage.value = 'Todas las otras sesiones fueron cerradas (mock).'
-}
+const handleEnableMfa = () => storeSettings.enableMfa()
+const handleDisableMfa = () => storeSettings.disableMfa()
+const handleVerifyMfa = () => storeSettings.verifyMfa()
+const handleLogoutDevice = (id: string) => storeSettings.logoutDevice(id)
+const handleLogoutAllOtherDevices = () => storeSettings.logoutAllOtherDevices()
 
 const handleSaveProfile = async () => {
   if (!validateProfile()) {
-    statusMessage.value = 'Corrige los campos marcados para continuar.'
+    storeSettings.setStatusMessage('Corrige los campos marcados para continuar.')
     return
   }
 
   if (!user.value?.id) {
-    statusMessage.value = 'No se encontro usuario autenticado para actualizar.'
+    storeSettings.setStatusMessage('No se encontro usuario autenticado para actualizar.')
     return
   }
 
   const payload = mapperUpdateProfilePayload(
+    user.value.id,
     profile.value.email,
     profile.value.firstName,
     profile.value.lastName,
     profile.value.phoneNumber,
   )
-  const success = await storeAuth.updateProfile(user.value.id, payload)
+  const success = await storeAuth.updateProfile(payload)
   if (success) {
-    statusMessage.value = 'Informacion de cuenta actualizada correctamente.'
+    storeSettings.setStatusMessage('Informacion de cuenta actualizada correctamente.')
     return
   }
-  statusMessage.value = storeAuth.errorMessage || 'No se pudo actualizar la informacion de la cuenta.'
+  storeSettings.setStatusMessage(storeAuth.errorMessage || 'No se pudo actualizar la informacion de la cuenta.')
 }
 
 const clearAvatarPreview = () => {
@@ -187,7 +112,7 @@ const handleOpenAvatarPicker = () => {
 
 const handleSaveAvatar = async () => {
   if (!user.value?.id) {
-    statusMessage.value = 'No se encontro usuario autenticado para actualizar avatar.'
+    storeSettings.setStatusMessage('No se encontro usuario autenticado para actualizar avatar.')
     return
   }
 
@@ -201,11 +126,11 @@ const handleSaveAvatar = async () => {
     avatarError.value = null
     avatarForm.value.file = null
     clearAvatarPreview()
-    statusMessage.value = 'Avatar actualizado correctamente.'
+    storeSettings.setStatusMessage('Avatar actualizado correctamente.')
     return
   }
 
-  statusMessage.value = storeAuth.errorMessage || 'No se pudo actualizar el avatar.'
+  storeSettings.setStatusMessage(storeAuth.errorMessage || 'No se pudo actualizar el avatar.')
 }
 
 onBeforeUnmount(() => {
@@ -303,7 +228,7 @@ watch(
           type="text"
           :error="profileErrors.firstName"
           :on-value-change="(value) => (profile.firstName = value)"
-          :on-blur="onProfileBlur('firstName')"
+          :on-validation="onProfileValidation('firstName')"
           required
         />
 
@@ -313,7 +238,7 @@ watch(
           type="text"
           :error="profileErrors.lastName"
           :on-value-change="(value) => (profile.lastName = value)"
-          :on-blur="onProfileBlur('lastName')"
+          :on-validation="onProfileValidation('lastName')"
           required
         />
 
@@ -323,7 +248,7 @@ watch(
           type="email"
           :error="profileErrors.email"
           :on-value-change="(value) => (profile.email = value)"
-          :on-blur="onProfileBlur('email')"
+          :on-validation="onProfileValidation('email')"
           required
         />
 
@@ -334,7 +259,7 @@ watch(
           placeholder="+56912345678"
           :error="profileErrors.phoneNumber"
           :on-value-change="(value) => (profile.phoneNumber = value)"
-          :on-blur="onProfileBlur('phoneNumber')"
+          :on-validation="onProfileValidation('phoneNumber')"
           required
         />
       </div>
@@ -358,12 +283,12 @@ watch(
           Estado actual:
           <strong :class="mfaStatusClass">{{ mfaStatusLabel }}</strong>
         </p>
-        <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Metodo: {{ mfaMethod }}</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Metodo: {{ mfaState.method }}</p>
         <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
-          Ultima verificacion: {{ mfaLastVerification }}
+          Ultima verificacion: {{ mfaState.lastVerification }}
         </p>
         <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
-          Verificado: {{ mfaVerified ? 'Si' : 'No' }}
+          Verificado: {{ mfaState.verified ? 'Si' : 'No' }}
         </p>
 
         <div class="mt-4 flex flex-wrap gap-2">

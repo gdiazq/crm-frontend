@@ -1,12 +1,11 @@
 import {
+  initialAlert,
   initialCreatePasswordForm,
   initialForgotPasswordForm,
   initialLoginForm,
   initialPasswordRequirements,
   initialRegisterForm,
   initialResendVerificationForm,
-  initialUpdateAvatarForm,
-  initialUpdateProfileForm,
   initialVerifyEmailForm,
 } from './auth.factory'
 import {
@@ -18,19 +17,31 @@ import {
   initialTabNotification,
 } from './notification.factory'
 import {
+  initialSettingsDevices,
+  initialSettingsMfaState,
+  initialSettingsStatusMessage,
+  initialUpdateAvatarForm,
+  initialUpdateProfileForm,
+  settingsMfaSetupSteps,
+  settingsUpdateProfileValidationRules,
+} from './setting.factory'
+import {
   loginValidationRules,
   registerValidationRules,
-  updateProfileValidationRules,
   verifyEmailValidationRules,
 } from './validation.factory'
 
 export {
+  initialAlert,
   initialCreatePasswordForm,
   initialForgotPasswordForm,
   initialLoginForm,
   initialPasswordRequirements,
   initialRegisterForm,
   initialResendVerificationForm,
+  initialSettingsDevices,
+  initialSettingsMfaState,
+  initialSettingsStatusMessage,
   initialUpdateAvatarForm,
   initialUpdateProfileForm,
   initialVerifyEmailForm,
@@ -42,6 +53,7 @@ export {
   initialLoadingNotification,
   loginValidationRules,
   registerValidationRules,
-  updateProfileValidationRules,
+  settingsMfaSetupSteps,
+  settingsUpdateProfileValidationRules,
   verifyEmailValidationRules,
 }

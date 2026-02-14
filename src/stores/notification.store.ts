@@ -168,8 +168,8 @@ export const useStoreNotification = defineStore('notification', {
       }
 
       try {
-        await axiosInstance.patch(`${NOTIFICATION_BASE_PATH}/read-all`, null, {
-          params: { userId },
+        await axiosInstance.patch(`${NOTIFICATION_BASE_PATH}/read-all`, {
+          userId,
         })
         this.notifications = mapperNotificationsByIds(
           this.notifications,

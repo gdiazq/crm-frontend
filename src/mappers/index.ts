@@ -4,8 +4,6 @@ import {
   mapperLoginPayload,
   mapperRegisterPayload,
   mapperResendVerificationPayload,
-  mapperUpdateAvatarFormData,
-  mapperUpdateProfilePayload,
   mapperMissingPasswordRequirements,
   mapperPasswordRequirements,
   mapperVerifyEmailPayload,
@@ -24,6 +22,13 @@ import {
   mapperNotificationFromPayload,
 } from './notification.mapper'
 import {
+  mapperFindSettingDeviceById,
+  mapperKeepCurrentSettingDevices,
+  mapperRemoveSettingDeviceById,
+  mapperUpdateAvatarFormData,
+  mapperUpdateProfilePayload,
+} from './setting.mapper'
+import {
   mapperIsFormValid,
   mapperValidateField,
 } from './validation.mapper'
@@ -35,6 +40,9 @@ export {
   mapperRegisterPayload,
   mapperVerifyEmailPayload,
   mapperResendVerificationPayload,
+  mapperFindSettingDeviceById,
+  mapperKeepCurrentSettingDevices,
+  mapperRemoveSettingDeviceById,
   mapperUpdateAvatarFormData,
   mapperUpdateProfilePayload,
   mapperPasswordRequirements,

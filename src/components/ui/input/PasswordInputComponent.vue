@@ -9,7 +9,7 @@ const props = withDefaults(
     autocomplete?: string
     minlength?: number
     error?: string | null
-    onBlur?: () => void
+    onValidation?: () => void
     onValueChange?: (value: string) => void
     showVisibilityToggle?: boolean
     visibilityLabel?: string
@@ -20,7 +20,7 @@ const props = withDefaults(
     placeholder: '',
     required: false,
     error: null,
-    onBlur: undefined,
+    onValidation: undefined,
     onValueChange: undefined,
     showVisibilityToggle: false,
     visibilityLabel: 'Ver',
@@ -54,7 +54,7 @@ const handleInput = (event: Event) => {
           props.showVisibilityToggle && 'pr-14',
         ]"
         @input="handleInput"
-        @blur="props.onBlur?.()"
+        @focusout="props.onValidation?.()"
       />
       <button
         v-if="props.showVisibilityToggle"

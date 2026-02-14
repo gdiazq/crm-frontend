@@ -9,7 +9,7 @@ const props = withDefaults(
     autocomplete?: string
     minlength?: number
     error?: string | null
-    onBlur?: () => void
+    onValidation?: () => void
     onValueChange?: (value: string) => void
   }>(),
   {
@@ -17,7 +17,7 @@ const props = withDefaults(
     placeholder: '',
     required: false,
     error: null,
-    onBlur: undefined,
+    onValidation: undefined,
     onValueChange: undefined,
   },
 )
@@ -46,7 +46,7 @@ const handleInput = (event: Event) => {
           : 'border border-slate-300 focus-visible:ring-cyan-400 dark:border-slate-700 dark:focus-visible:ring-cyan-400',
       ]"
       @input="handleInput"
-      @blur="props.onBlur?.()"
+      @focusout="props.onValidation?.()"
     />
     <p v-if="props.error" class="mt-1 text-xs text-rose-500 dark:text-rose-400">
       {{ props.error }}

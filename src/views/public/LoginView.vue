@@ -15,7 +15,7 @@ const { isDark } = storeToRefs(storeTheme)
 const form = ref({ ...initialLoginForm })
 const remindMe = ref(false)
 const showPassword = ref(false)
-const { errors, validateAll, onBlur } = useFormValidation(form, loginValidationRules)
+const { errors, validateAll, onValidation } = useFormValidation(form, loginValidationRules)
 
 const controlLoginAlert = computed(() => {
   return storeAuth.loginError
@@ -136,7 +136,7 @@ onBeforeUnmount(() => {
             placeholder="Ingresa tu correo"
             :error="errors.email"
             :on-value-change="(value) => (form.email = value)"
-            :on-blur="onBlur('email')"
+            :on-validation="onValidation('email')"
             required
           />
 
@@ -150,7 +150,7 @@ onBeforeUnmount(() => {
             required
             :error="errors.password"
             :on-value-change="(value) => (form.password = value)"
-            :on-blur="onBlur('password')"
+            :on-validation="onValidation('password')"
             :show-visibility-toggle="true"
             :visibility-label="showPassword ? 'Ocultar' : 'Ver'"
             :on-toggle-visibility="handleTogglePassword"

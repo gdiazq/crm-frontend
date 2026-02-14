@@ -89,29 +89,6 @@ export interface AuthResendVerificationForm {
   phoneNumber: string
 }
 
-export interface AuthUpdateProfilePayload {
-  email: string
-  firstName: string
-  lastName: string
-  phoneNumber: string
-}
-
-export interface AuthUpdateProfileForm {
-  email: string
-  firstName: string
-  lastName: string
-  phoneNumber: string
-}
-
-export interface AuthUpdateAvatarPayload {
-  file: File
-}
-
-export interface AuthUpdateAvatarForm {
-  file: File | null
-  previewUrl: string
-}
-
 export interface AlertsCore {
   icon: string
   variant: 'success' | 'error' | 'warning' | 'info'

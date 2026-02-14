@@ -7,7 +7,7 @@ export function useFormValidation(
   rules: Record<string, ValidationRule>,
   options: ValidationOptions = {},
 ) {
-  const trigger = options.trigger || 'blur'
+  const trigger = options.trigger || 'validacion'
 
   const errors = reactive<Record<string, string | null>>({})
   Object.keys(form.value).forEach((key) => {
@@ -47,9 +47,9 @@ export function useFormValidation(
     )
   }
 
-  const onBlur = (name: string) => {
+  const onValidation = (name: string) => {
     return () => {
-      if (trigger === 'blur') validateField(name)
+      if (trigger === 'validacion') validateField(name)
     }
   }
 
@@ -58,6 +58,6 @@ export function useFormValidation(
     isValid,
     validateField,
     validateAll,
-    onBlur,
+    onValidation,
   }
 }

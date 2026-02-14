@@ -11,13 +11,13 @@ const props = withDefaults(
     required?: boolean
     options: SelectOption[]
     error?: string | null
-    onBlur?: () => void
+    onValidation?: () => void
     onValueChange?: (value: string) => void
   }>(),
   {
     required: false,
     error: null,
-    onBlur: undefined,
+    onValidation: undefined,
     onValueChange: undefined,
   },
 )
@@ -42,7 +42,7 @@ const handleChange = (event: Event) => {
           : 'border border-slate-300 focus-visible:ring-cyan-400 dark:border-slate-700 dark:focus-visible:ring-cyan-400',
       ]"
       @change="handleChange"
-      @blur="props.onBlur?.()"
+      @focusout="props.onValidation?.()"
     >
       <option value="" disabled>Selecciona una opcion</option>
       <option v-for="option in props.options" :key="option.value" :value="option.value">

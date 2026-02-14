@@ -1,4 +1,4 @@
-export type ValidationTrigger = 'blur' | 'change'
+export type ValidationTrigger = 'validacion' | 'change'
 
 export interface ValidationRule {
   required?: boolean

@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import axios from 'axios'
 import { axiosInstance } from '@/config'
 import { useAuthSessionStorage } from '@/composables'
+import { initialAlert } from '@/factories'
 import { mapperUpdateAvatarFormData } from '@/mappers'
 import type {
   AlertsCore,
@@ -12,19 +13,13 @@ import type {
   AuthLoginPayload,
   AuthResendVerificationPayload,
   AuthRegisterPayload,
-  AuthUpdateAvatarPayload,
-  AuthUpdateProfilePayload,
   AuthVerifyEmailResponse,
   AuthVerifyEmailPayload,
   AuthUser,
   ModulePermission,
+  SettingUpdateAvatarPayload,
+  SettingUpdateProfilePayload,
 } from '@/interfaces'
-
-const initialAlert: AlertsCore = {
-  icon: 'fa-solid fa-circle-info',
-  variant: 'info',
-  message: '',
-}
 
 type PermissionType = 'canRead' | 'canCreate' | 'canUpdate' | 'canDelete'
 
@@ -32,7 +27,6 @@ export const useStoreAuth = defineStore('auth', () => {
   const authSessionStorage = useAuthSessionStorage()
   const user = ref<AuthUser | null>(null)
   const permissions = ref<ModulePermission[]>([])
-  const menu = ref(null)
 
   const sidebar = reactive({
     toggleMobile: false,
@@ -62,17 +56,6 @@ export const useStoreAuth = defineStore('auth', () => {
   const pendingPasswordTokenIssuedAt = ref<number | null>(authSessionStorage.getPendingPasswordTokenIssuedAt())
   const emailAvailable = ref<boolean | null>(null)
 
-  const getUserConfig = async () => {
-    try {
-      const response = await fetch('/db/config/config.json')
-      if (!response.ok) return
-      const data = await response.json()
-      menu.value = data.menu ?? null
-    } catch (error) {
-      errorBack.value = error
-    }
-  }
-
   const login = async (credentials: AuthLoginPayload) => {
     try {
       loginSubmitting.value = true
@@ -88,7 +71,6 @@ export const useStoreAuth = defineStore('auth', () => {
       const { data } = await axiosInstance.post<{ user: AuthUser; modules?: ModulePermission[] }>('/auth/login', payload)
       user.value = data.user
       permissions.value = data.modules || []
-      await getUserConfig()
 
       try {
         const { data: fullProfile } = await axiosInstance.get<AuthUser>('/auth/me')
@@ -323,14 +305,12 @@ export const useStoreAuth = defineStore('auth', () => {
     }
   }
 
-  const updateProfile = async (userId: number, payload: AuthUpdateProfilePayload) => {
+  const updateProfile = async (payload: SettingUpdateProfilePayload) => {
     try {
       updateProfileSubmitting.value = true
       errorMessage.value = null
 
-      await axiosInstance.post('/user/update', payload, {
-        params: { id: userId },
-      })
+      await axiosInstance.put('/user/update', payload)
 
       if (user.value) {
         user.value = {
@@ -361,7 +341,7 @@ export const useStoreAuth = defineStore('auth', () => {
     }
   }
 
-  const updateAvatar = async (userId: number, payload: AuthUpdateAvatarPayload) => {
+  const updateAvatar = async (userId: number, payload: SettingUpdateAvatarPayload) => {
     try {
       updateAvatarSubmitting.value = true
       errorMessage.value = null
@@ -403,7 +383,6 @@ export const useStoreAuth = defineStore('auth', () => {
       try {
         const { data } = await axiosInstance.get<AuthUser>('/auth/me')
         user.value = data
-        await getUserConfig()
       } catch (error) {
         errorBack.value = error
         if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
@@ -423,7 +402,6 @@ export const useStoreAuth = defineStore('auth', () => {
   const reset = () => {
     user.value = null
     permissions.value = []
-    menu.value = null
     pendingPasswordToken.value = null
     pendingPasswordTokenIssuedAt.value = null
     authSessionStorage.clearPendingPasswordToken()
@@ -484,7 +462,6 @@ export const useStoreAuth = defineStore('auth', () => {
   return {
     user,
     permissions,
-    menu,
     sidebar,
     loginSubmitting,
     registerSubmitting,
@@ -507,7 +484,6 @@ export const useStoreAuth = defineStore('auth', () => {
     pendingPasswordToken,
     pendingPasswordTokenIssuedAt,
     emailAvailable,
-    getUserConfig,
     login,
     register,
     forgotPassword,

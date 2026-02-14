@@ -15,7 +15,7 @@ const { isDark } = storeToRefs(storeTheme)
 const { errorMessage, registerSubmitting, checkEmailSubmitting, emailAvailable } = storeToRefs(storeAuth)
 
 const form = ref({ ...initialRegisterForm })
-const { errors, isValid, validateField, validateAll, onBlur } = useFormValidation(form, registerValidationRules)
+const { errors, isValid, validateField, validateAll, onValidation } = useFormValidation(form, registerValidationRules)
 const controlCanSubmit = computed(() => {
   return isValid.value && emailAvailable.value !== false && !checkEmailSubmitting.value
 })
@@ -117,7 +117,7 @@ onBeforeUnmount(() => {
           placeholder="johndoe"
           :error="errors.username"
           :on-value-change="(value) => (form.username = value)"
-          :on-blur="onBlur('username')"
+          :on-validation="onValidation('username')"
           required
         />
         <InputComponent
@@ -128,7 +128,7 @@ onBeforeUnmount(() => {
           placeholder="John"
           :error="errors.firstName"
           :on-value-change="(value) => (form.firstName = value)"
-          :on-blur="onBlur('firstName')"
+          :on-validation="onValidation('firstName')"
           required
         />
         <InputComponent
@@ -139,7 +139,7 @@ onBeforeUnmount(() => {
           placeholder="Doe"
           :error="errors.lastName"
           :on-value-change="(value) => (form.lastName = value)"
-          :on-blur="onBlur('lastName')"
+          :on-validation="onValidation('lastName')"
           required
         />
         <InputComponent
@@ -150,7 +150,7 @@ onBeforeUnmount(() => {
           placeholder="Ingresa tu correo"
           :error="errors.email"
           :on-value-change="(value) => (form.email = value)"
-          :on-blur="onBlur('email')"
+          :on-validation="onValidation('email')"
           required
         />
         <InputComponent
@@ -161,7 +161,7 @@ onBeforeUnmount(() => {
           placeholder="+1234567890"
           :error="errors.phoneNumber"
           :on-value-change="(value) => (form.phoneNumber = value)"
-          :on-blur="onBlur('phoneNumber')"
+          :on-validation="onValidation('phoneNumber')"
           required
         />
 
