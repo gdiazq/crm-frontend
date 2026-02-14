@@ -1,5 +1,6 @@
 import type {
   SettingDeviceSession,
+  SettingMfaSetupData,
   SettingMfaState,
   SettingTabKey,
   SettingTabOption,
@@ -25,6 +26,12 @@ export const initialSettingsMfaState: SettingMfaState = {
   verified: false,
   method: 'Authenticator App (TOTP)',
   lastVerification: 'Sin verificacion reciente',
+}
+
+export const initialSettingsMfaSetupData: SettingMfaSetupData = {
+  qrCodeUrl: '',
+  secret: '',
+  otpauthUri: '',
 }
 
 export const initialSettingsStatusMessage = 'Configuracion usando datos mock para integrar backend luego.'

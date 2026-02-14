@@ -13,11 +13,33 @@ export interface SettingMfaState {
   lastVerification: string
 }
 
+export interface SettingMfaSetupData {
+  qrCodeUrl: string
+  secret: string
+  otpauthUri: string
+}
+
 export type SettingTabKey = 'account' | 'mfa'
 
 export interface SettingTabOption {
   key: SettingTabKey
   label: string
+}
+
+export interface SettingMfaSetupPayload {
+  username: string
+  deviceId: string
+}
+
+export interface SettingMfaVerifyPayload {
+  username: string
+  code: string
+  deviceId: string
+}
+
+export interface SettingMfaDisablePayload {
+  username: string
+  deviceId: string
 }
 
 export interface SettingUpdateProfilePayload {

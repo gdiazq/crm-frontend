@@ -23,6 +23,7 @@ export const initialCreatePasswordForm: AuthCreatePasswordForm = {
 export const initialLoginForm: AuthLoginForm = {
   email: '',
   password: '',
+  totpCode: '',
 }
 
 export const initialForgotPasswordForm: AuthForgotPasswordForm = {

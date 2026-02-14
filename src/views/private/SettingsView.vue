@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import QRCode from 'qrcode'
 import { InputComponent, TabsComponent } from '@/components'
 import { useFormValidation } from '@/composables'
 import {
@@ -16,6 +17,8 @@ const storeSettings = useStoreSettings()
 const { user, updateProfileSubmitting, updateAvatarSubmitting } = storeToRefs(storeAuth)
 const {
   mfaState,
+  mfaSetupData,
+  mfaVerificationCode,
   statusMessage,
   devices,
   mfaSetupSteps,
@@ -24,12 +27,16 @@ const {
   activeSessions,
   mfaStatusLabel,
   mfaStatusClass,
+  loadingMfaAction,
+  loadingSessions,
+  loadingLogoutDevice,
 } = storeToRefs(storeSettings)
 
 const profile = ref({ ...initialUpdateProfileForm })
 const avatarForm = ref({ ...initialUpdateAvatarForm })
 const avatarError = ref<string | null>(null)
 const avatarInputRef = ref<HTMLInputElement | null>(null)
+const mfaQrImage = ref('')
 const {
   errors: profileErrors,
   validateAll: validateProfile,
@@ -50,13 +57,66 @@ const avatarInitials = computed(() => {
 })
 const showAccountTab = computed(() => activeTab.value === 'account')
 const showMfaTab = computed(() => activeTab.value === 'mfa')
-const handleEnableMfa = () => storeSettings.enableMfa()
-const handleDisableMfa = () => storeSettings.disableMfa()
-const handleVerifyMfa = () => storeSettings.verifyMfa()
-const handleLogoutDevice = (id: string) => storeSettings.logoutDevice(id)
-const handleLogoutAllOtherDevices = () => storeSettings.logoutAllOtherDevices()
+const currentUsername = computed(() => user.value?.username || '')
+const buildOtpAuthUriFromSecret = (secret: string, username: string) => {
+  const issuer = 'CRM'
+  const encodedIssuer = encodeURIComponent(issuer)
+  const encodedUser = encodeURIComponent(username || 'user')
+  return `otpauth://totp/${encodedIssuer}:${encodedUser}?secret=${encodeURIComponent(secret)}&issuer=${encodedIssuer}`
+}
+
+const resolveMfaQrValue = () => {
+  const value = mfaSetupData.value.otpauthUri || mfaSetupData.value.qrCodeUrl
+  if (value) return value
+  const secret = mfaSetupData.value.secret
+  if (secret) return buildOtpAuthUriFromSecret(secret, currentUsername.value)
+  return value || ''
+}
+
+const buildMfaQrImage = async () => {
+  const value = resolveMfaQrValue()
+  if (!value) {
+    mfaQrImage.value = ''
+    return
+  }
+
+  if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('data:image/')) {
+    mfaQrImage.value = value
+    return
+  }
+
+  try {
+    mfaQrImage.value = await QRCode.toDataURL(value, {
+      width: 220,
+      margin: 1,
+      errorCorrectionLevel: 'M',
+    })
+  } catch {
+    mfaQrImage.value = ''
+  }
+}
+
+const handleEnableMfa = async () => {
+  const success = await storeSettings.enableMfa(currentUsername.value)
+  if (!success) return
+  await buildMfaQrImage()
+}
+const handleDisableMfa = async () => storeSettings.disableMfa(currentUsername.value)
+const handleVerifyMfa = async () => storeSettings.verifyMfa(currentUsername.value)
+const handleLogoutDevice = async (id: string) => storeSettings.logoutDevice(currentUsername.value, id)
+const handleLogoutAllOtherDevices = async () => storeSettings.logoutAllOtherDevices(currentUsername.value)
 const handleTabChange = (tab: 'account' | 'mfa') => {
   storeSettings.setActiveTab(tab)
+}
+const handleMfaCodeValue = (value: string) => storeSettings.setMfaVerificationCode(value)
+const handleCopySecret = async () => {
+  if (!mfaSetupData.value.secret) return
+  try {
+    await navigator.clipboard.writeText(mfaSetupData.value.secret)
+    storeSettings.setStatusMessage('Secret copiado al portapapeles.')
+  } catch {
+    storeSettings.setStatusMessage('No se pudo copiar el secret.')
+  }
 }
 
 const handleFirstNameValue = (value: string) => {
@@ -167,8 +227,11 @@ const handleInitialProfile = () => {
   profile.value = mapperSettingProfileForm(user.value)
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await storeAuth.getCurrentUser()
   handleInitialProfile()
+  await storeSettings.loadMfaAndSessions(currentUsername.value)
+  await buildMfaQrImage()
 })
 </script>
 
@@ -304,8 +367,8 @@ onMounted(() => {
       </div>
     </section>
 
-    <section v-if="showMfaTab" class="grid gap-6 lg:grid-cols-2">
-      <article class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900/60">
+    <section v-if="showMfaTab" class="grid items-start gap-6 lg:grid-cols-2">
+      <article class="self-start overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900/60">
         <h2 class="text-lg font-semibold">Estado de MFA</h2>
         <p class="mt-2 text-sm">
           Estado actual:
@@ -323,41 +386,84 @@ onMounted(() => {
           <button
             type="button"
             class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+            :disabled="loadingMfaAction"
             @click="handleEnableMfa"
           >
-            Habilitar MFA
+            {{ loadingMfaAction ? 'Procesando...' : 'Iniciar setup MFA' }}
           </button>
           <button
             type="button"
             class="rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white hover:bg-rose-700"
+            :disabled="loadingMfaAction"
             @click="handleDisableMfa"
           >
             Deshabilitar MFA
           </button>
+        </div>
+
+        <div class="mt-4">
+          <InputComponent
+            :model-value="mfaVerificationCode"
+            label="Codigo MFA"
+            type="text"
+            placeholder="123456"
+            :on-value-change="handleMfaCodeValue"
+          />
+        </div>
+
+        <div class="mt-3 flex flex-wrap gap-2">
           <button
             type="button"
             class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold hover:border-cyan-500 dark:border-slate-700 dark:bg-slate-900"
+            :disabled="loadingMfaAction"
             @click="handleVerifyMfa"
           >
-            Verificar estado MFA
+            Verificar codigo MFA
           </button>
         </div>
       </article>
 
-      <article class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900/60">
+      <article class="self-start rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900/60">
         <h2 class="text-lg font-semibold">Setup de 2FA</h2>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Flujo recomendado para onboarding seguro de doble factor.
-        </p>
+        <div class="mt-2 flex flex-col gap-3 lg:flex-nowrap lg:flex-row lg:items-start lg:gap-4">
+          <div class="min-w-0 flex-1">
+            <p class="text-sm text-slate-600 dark:text-slate-300">
+              Flujo recomendado para onboarding seguro de doble factor.
+            </p>
 
-        <ul class="mt-4 space-y-2 text-sm">
-          <li v-for="step in mfaSetupSteps" :key="step" class="rounded-lg border border-slate-200 px-3 py-2 dark:border-white/10">
-            {{ step }}
-          </li>
-        </ul>
+            <ol class="mt-1 list-none space-y-2.5 text-sm text-slate-300">
+              <li class="rounded-lg border border-slate-700/70 px-3 py-2">
+                <span class="mr-2 font-semibold text-slate-200">1.</span>
+                <span>Instala Google Authenticator, Microsoft Authenticator o Authy.</span>
+              </li>
+              <li class="rounded-lg border border-slate-700/70 px-3 py-2">
+                <span class="mr-2 font-semibold text-slate-200">2.</span>
+                <span>Escanea el QR de configuracion de 2FA.</span>
+              </li>
+              <li class="rounded-lg border border-slate-700/70 px-3 py-2">
+                <span class="mr-2 font-semibold text-slate-200">3.</span>
+                <span>Ingresa el codigo de 6 digitos para confirmar setup.</span>
+              </li>
+            </ol>
+          </div>
 
-        <div class="mt-4 rounded-lg border border-dashed border-cyan-300 bg-cyan-50 px-3 py-2 text-xs text-cyan-800 dark:border-cyan-400/30 dark:bg-cyan-900/20 dark:text-cyan-200">
-          Mock: en integracion real aqui va QR secret, code input y endpoint de verificacion.
+          <div class="w-full max-w-[12.5rem] lg:shrink-0">
+              <div v-if="mfaQrImage" class="rounded-xl border border-cyan-300/40 bg-cyan-50/70 p-3 dark:border-cyan-400/30 dark:bg-cyan-900/20">
+                <img
+                  :src="mfaQrImage"
+                  alt="QR de configuracion MFA"
+                  class="mx-auto h-44 w-44 rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-white/10 dark:bg-slate-900"
+                >
+              </div>
+              <div v-else class="rounded-xl border border-dashed border-slate-300 px-3 py-10 text-center text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                Inicia setup MFA para generar QR
+              </div>
+
+              <div v-if="mfaSetupData.secret" class="mt-3">
+                <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Secret</p>
+                <code class="block break-all rounded-md bg-slate-900 px-2 py-1 text-xs text-cyan-300">{{ mfaSetupData.secret }}</code>
+              </div>
+          </div>
         </div>
       </article>
     </section>
@@ -373,6 +479,7 @@ onMounted(() => {
         <button
           type="button"
           class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold hover:border-cyan-500 dark:border-slate-700 dark:bg-slate-900"
+          :disabled="loadingSessions || loadingLogoutDevice"
           @click="handleLogoutAllOtherDevices"
         >
           Desloguear otros dispositivos
@@ -395,6 +502,7 @@ onMounted(() => {
           <button
             type="button"
             class="rounded-lg px-3 py-2 text-xs font-semibold"
+            :disabled="loadingLogoutDevice"
             :class="device.current ? 'border border-slate-300 text-slate-500 dark:border-slate-700 dark:text-slate-400' : 'bg-rose-600 text-white hover:bg-rose-700'"
             @click="handleLogoutDevice(device.id)"
           >

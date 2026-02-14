@@ -15,11 +15,19 @@ const { isDark } = storeToRefs(storeTheme)
 const form = ref({ ...initialLoginForm })
 const remindMe = ref(false)
 const showPassword = ref(false)
-const { errors, validateAll, onValidation } = useFormValidation(form, loginValidationRules)
+const loginStep = ref<'email' | 'credentials'>('email')
+const { errors, validateField, onValidation } = useFormValidation(form, loginValidationRules)
 
 const controlLoginAlert = computed(() => {
-  return storeAuth.loginError
+  return storeAuth.loginError || storeAuth.mfaRequired
 })
+const controlIsInfoAlert = computed(() => storeAuth.messageAlert.variant === 'info')
+const controlShowMfaInput = computed(() => storeAuth.mfaRequired)
+const controlShowEmailStep = computed(() => loginStep.value === 'email')
+const controlShowCredentialsStep = computed(() => loginStep.value === 'credentials')
+const controlHeaderBackLabel = computed(() => (controlShowEmailStep.value ? 'Volver al inicio' : 'Volver al login'))
+const controlShowTopAlert = computed(() => controlLoginAlert.value && controlShowCredentialsStep.value)
+const controlShowBottomEmailAlert = computed(() => controlLoginAlert.value && controlShowEmailStep.value && !controlIsInfoAlert.value)
 
 const handleMessageAlert = (message?: string) => {
   storeAuth.loginError = true
@@ -31,11 +39,28 @@ const handleMessageAlert = (message?: string) => {
 }
 
 const submitForm = async () => {
-  if (!validateAll()) {
+  if (controlShowEmailStep.value) {
+    const emailValid = validateField('email')
+    if (!emailValid) return
+
+    const canContinue = await storeAuth.preLogin(form.value.email)
+    if (!canContinue) return
+
+    loginStep.value = 'credentials'
     return
   }
 
-  const payload = mapperLoginPayload(form.value.email, form.value.password)
+  const passwordValid = validateField('password')
+  if (!passwordValid) {
+    return
+  }
+
+  if (storeAuth.mfaRequired && !form.value.totpCode.trim()) {
+    handleMessageAlert('Ingresa tu codigo MFA de 6 digitos.')
+    return
+  }
+
+  const payload = mapperLoginPayload(form.value.email, form.value.password, form.value.totpCode)
   const success = await storeAuth.login(payload)
   if (!success) {
     handleMessageAlert(storeAuth.messageAlert.message || 'Usuario o contraseña incorrectos.')
@@ -55,16 +80,36 @@ const handleRecovery = () => {
   router.push('/recovery')
 }
 
+const handleBackToEmail = () => {
+  loginStep.value = 'email'
+  form.value.password = ''
+  form.value.totpCode = ''
+  storeAuth.loginError = false
+  storeAuth.clearMfaRequired()
+}
+
 const handleTogglePassword = () => {
   showPassword.value = !showPassword.value
 }
 
 const handleEmailValue = (value: string) => {
   form.value.email = value
+  if (storeAuth.mfaRequired) {
+    form.value.totpCode = ''
+    storeAuth.clearMfaRequired()
+  }
 }
 
 const handlePasswordValue = (value: string) => {
   form.value.password = value
+  if (storeAuth.mfaRequired) {
+    form.value.totpCode = ''
+    storeAuth.clearMfaRequired()
+  }
+}
+
+const handleTotpCodeValue = (value: string) => {
+  form.value.totpCode = value.replace(/\s+/g, '')
 }
 
 const handleMicrosoftLogin = () => {
@@ -80,8 +125,17 @@ const handleGoHome = () => {
   router.push('/')
 }
 
+const handleHeaderBack = () => {
+  if (controlShowCredentialsStep.value) {
+    handleBackToEmail()
+    return
+  }
+  handleGoHome()
+}
+
 onMounted(() => {
   storeAuth.loginError = false
+  storeAuth.clearMfaRequired()
   storeAuth.messageAlert = {
     icon: 'fa-solid fa-circle-info',
     variant: 'info',
@@ -96,6 +150,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   storeAuth.loginError = false
+  storeAuth.clearMfaRequired()
 })
 </script>
 
@@ -111,10 +166,10 @@ onBeforeUnmount(() => {
         <button
           type="button"
           class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-600 opacity-90 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 dark:text-slate-300 dark:focus-visible:ring-offset-slate-950"
-          @click="handleGoHome"
+          @click="handleHeaderBack"
         >
           <span aria-hidden="true">←</span>
-          Volver al inicio
+          {{ controlHeaderBackLabel }}
         </button>
 
         <div class="mt-4 text-center">
@@ -126,17 +181,19 @@ onBeforeUnmount(() => {
 
         <form class="mt-7 space-y-4" @submit.prevent="submitForm">
           <div
-            v-if="controlLoginAlert"
+            v-if="controlShowTopAlert"
             class="rounded-lg border px-3 py-2 text-sm"
             :class="[
-              'border-rose-300 bg-rose-50 text-rose-700',
-              'dark:border-rose-400/40 dark:bg-rose-900/20 dark:text-rose-200',
+              controlIsInfoAlert
+                ? 'border-cyan-300 bg-cyan-50 text-cyan-700 dark:border-cyan-400/40 dark:bg-cyan-900/20 dark:text-cyan-200'
+                : 'border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-400/40 dark:bg-rose-900/20 dark:text-rose-200',
             ]"
           >
             {{ storeAuth.messageAlert.message || 'Usuario o contraseña incorrectos.' }}
           </div>
 
           <InputComponent
+            v-if="controlShowEmailStep"
             :model-value="form.email"
             label="Correo electrónico"
             type="text"
@@ -148,21 +205,33 @@ onBeforeUnmount(() => {
             required
           />
 
-          <PasswordInputComponent
-            :model-value="form.password"
-            label="Contraseña"
-            :type="showPassword ? 'text' : 'password'"
-            :minlength="6"
-            autocomplete="current-password"
-            placeholder="••••••••"
-            required
-            :error="errors.password"
-            :on-value-change="handlePasswordValue"
-            :on-validation="onValidation('password')"
-            :show-visibility-toggle="true"
-            :visibility-label="showPassword ? 'Ocultar' : 'Ver'"
-            :on-toggle-visibility="handleTogglePassword"
-          />
+          <template v-if="controlShowCredentialsStep">
+            <PasswordInputComponent
+              :model-value="form.password"
+              label="Contraseña"
+              :type="showPassword ? 'text' : 'password'"
+              :minlength="6"
+              autocomplete="current-password"
+              placeholder="••••••••"
+              required
+              :error="errors.password"
+              :on-value-change="handlePasswordValue"
+              :on-validation="onValidation('password')"
+              :show-visibility-toggle="true"
+              :visibility-label="showPassword ? 'Ocultar' : 'Ver'"
+              :on-toggle-visibility="handleTogglePassword"
+            />
+
+            <InputComponent
+              v-if="controlShowMfaInput"
+              :model-value="form.totpCode"
+              label="Codigo MFA"
+              type="text"
+              autocomplete="one-time-code"
+              placeholder="123456"
+              :on-value-change="handleTotpCodeValue"
+            />
+          </template>
 
           <div class="flex items-center justify-between text-sm">
             <label class="inline-flex items-center gap-2">
@@ -170,6 +239,7 @@ onBeforeUnmount(() => {
               <span class="text-slate-600 dark:text-slate-300">Recordarme</span>
             </label>
             <button
+              v-if="controlShowCredentialsStep"
               type="button"
               class="font-semibold text-cyan-700 transition hover:text-cyan-800 dark:text-cyan-300 dark:hover:text-cyan-200"
               @click="handleRecovery"
@@ -182,11 +252,27 @@ onBeforeUnmount(() => {
             type="submit"
             variant="solid"
             :full-width="true"
-            :disabled="storeAuth.loginSubmitting"
+            :disabled="storeAuth.loginSubmitting || storeAuth.preLoginSubmitting"
           >
-            {{ storeAuth.loginSubmitting ? 'Accediendo...' : 'Iniciar sesión' }}
+            {{
+              controlShowEmailStep
+                ? storeAuth.preLoginSubmitting
+                  ? 'Validando...'
+                  : 'Continuar'
+                : storeAuth.loginSubmitting
+                  ? 'Accediendo...'
+                  : 'Iniciar sesión'
+            }}
           </ButtonComponent>
 
+          <div
+            v-if="controlShowBottomEmailAlert"
+            class="rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-400/40 dark:bg-rose-900/20 dark:text-rose-200"
+          >
+            {{ storeAuth.messageAlert.message || 'Correo invalido o no registrado.' }}
+          </div>
+
+          <template v-if="controlShowCredentialsStep">
           <div class="flex items-center gap-3 py-1">
             <div class="h-px flex-1 bg-slate-300 dark:bg-slate-700"></div>
             <span class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">o</span>
@@ -201,6 +287,7 @@ onBeforeUnmount(() => {
           >
             Continuar con Microsoft
           </button>
+          </template>
         </form>
       </section>
     </section>

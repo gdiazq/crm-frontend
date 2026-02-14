@@ -19,6 +19,7 @@ import {
 import {
   initialSettingsDevices,
   initialSettingsMfaState,
+  initialSettingsMfaSetupData,
   initialSettingsStatusMessage,
   initialSettingsTab,
   initialUpdateAvatarForm,
@@ -43,6 +44,7 @@ export {
   initialResendVerificationForm,
   initialSettingsDevices,
   initialSettingsMfaState,
+  initialSettingsMfaSetupData,
   initialSettingsStatusMessage,
   initialSettingsTab,
   initialUpdateAvatarForm,

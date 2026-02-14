@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { reactive, ref } from 'vue'
 import axios from 'axios'
 import { axiosInstance } from '@/config'
-import { useAuthSessionStorage } from '@/composables'
+import { useAuthSessionStorage, useDeviceId } from '@/composables'
 import { initialAlert } from '@/factories'
 import { mapperUpdateAvatarFormData } from '@/mappers'
 import type {
@@ -10,6 +10,8 @@ import type {
   AuthCheckEmailResponse,
   AuthCreatePasswordPayload,
   AuthForgotPasswordPayload,
+  AuthLoginErrorResponse,
+  AuthPreLoginResponse,
   AuthLoginPayload,
   AuthResendVerificationPayload,
   AuthRegisterPayload,
@@ -25,6 +27,7 @@ type PermissionType = 'canRead' | 'canCreate' | 'canUpdate' | 'canDelete'
 
 export const useStoreAuth = defineStore('auth', () => {
   const authSessionStorage = useAuthSessionStorage()
+  const { getDeviceId } = useDeviceId()
   const user = ref<AuthUser | null>(null)
   const permissions = ref<ModulePermission[]>([])
 
@@ -35,6 +38,7 @@ export const useStoreAuth = defineStore('auth', () => {
 
   const loginSubmitting = ref(false)
   const registerSubmitting = ref(false)
+  const preLoginSubmitting = ref(false)
   const forgotPasswordSubmitting = ref(false)
   const verifySubmitting = ref(false)
   const createPasswordSubmitting = ref(false)
@@ -43,6 +47,7 @@ export const useStoreAuth = defineStore('auth', () => {
   const updateProfileSubmitting = ref(false)
   const updateAvatarSubmitting = ref(false)
   const loginError = ref(false)
+  const mfaRequired = ref(false)
   const messageAlert = ref<AlertsCore>({ ...initialAlert })
   const successMessage = ref<string | null>(null)
   const errorMessage = ref<string | null>(null)
@@ -66,11 +71,17 @@ export const useStoreAuth = defineStore('auth', () => {
       const payload = {
         email: credentials.email,
         password: credentials.password,
+        ...(credentials.totpCode ? { totpCode: credentials.totpCode } : {}),
       }
 
-      const { data } = await axiosInstance.post<{ user: AuthUser; modules?: ModulePermission[] }>('/auth/login', payload)
+      const { data } = await axiosInstance.post<{ user: AuthUser; modules?: ModulePermission[] }>('/auth/login', payload, {
+        headers: {
+          'X-Device-Id': getDeviceId(),
+        },
+      })
       user.value = data.user
       permissions.value = data.modules || []
+      mfaRequired.value = false
 
       try {
         const { data: fullProfile } = await axiosInstance.get<AuthUser>('/auth/me')
@@ -85,14 +96,89 @@ export const useStoreAuth = defineStore('auth', () => {
       loginError.value = true
       errorBack.value = error
       let message = 'No se pudo iniciar sesion. Intenta nuevamente.'
+      let alertVariant: AlertsCore['variant'] = 'error'
+      let alertIcon = 'fa-solid fa-triangle-exclamation'
 
       if (axios.isAxiosError(error)) {
         const status = error.response?.status
+        const responseData = (error.response?.data || {}) as AuthLoginErrorResponse
+        const backendMessage = responseData.message
+        const isMfaRequiredResponse =
+          responseData.mfaRequired === true ||
+          responseData.mfa_required === true ||
+          responseData.error === 'MFA Required' ||
+          backendMessage === 'MFA code required'
+
+        if (status === 403 && isMfaRequiredResponse) {
+          mfaRequired.value = true
+          loginError.value = false
+          alertVariant = 'info'
+          alertIcon = 'fa-solid fa-shield-halved'
+          message = 'Ingresa tu codigo MFA de 6 digitos para continuar.'
+        }
+
         if (status === 400) message = 'Datos invalidos. Verifica correo y contraseña.'
-        if (status === 401) message = 'Credenciales invalidas.'
+        if (status === 401) {
+          if (mfaRequired.value && credentials.totpCode) message = 'Codigo MFA invalido.'
+          else {
+            mfaRequired.value = false
+            message = 'Credenciales invalidas.'
+          }
+        }
         if (status === 500 || status === 503) message = 'Servicio no disponible temporalmente.'
+        if (
+          typeof backendMessage === 'string' &&
+          backendMessage.length > 0 &&
+          !(status === 403 && isMfaRequiredResponse)
+        ) {
+          message = backendMessage
+        }
       }
 
+      messageAlert.value = {
+        icon: alertIcon,
+        variant: alertVariant,
+        message,
+      }
+      errorMessage.value = message
+      return false
+    } finally {
+      loginSubmitting.value = false
+    }
+  }
+
+  const preLogin = async (email: string) => {
+    try {
+      preLoginSubmitting.value = true
+      loginError.value = false
+      errorMessage.value = null
+      successMessage.value = null
+
+      const { data } = await axiosInstance.post<AuthPreLoginResponse>('/auth/pre-login', {
+        email: email.trim(),
+      })
+
+      mfaRequired.value = data.mfaRequired === true || data.mfa_required === true
+      messageAlert.value = {
+        icon: mfaRequired.value ? 'fa-solid fa-shield-halved' : 'fa-solid fa-circle-info',
+        variant: 'info',
+        message: mfaRequired.value
+          ? 'Tu cuenta tiene MFA activo. Ingresa contraseña y codigo.'
+          : 'Ingresa tu contraseña para continuar.',
+      }
+      return true
+    } catch (error) {
+      errorBack.value = error
+      mfaRequired.value = false
+      let message = 'Correo invalido o no registrado.'
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status
+        if (status === 401 || status === 404) message = 'Correo invalido o no registrado.'
+        if (status === 400) message = 'Correo invalido.'
+      }
+
+      loginError.value = true
       messageAlert.value = {
         icon: 'fa-solid fa-triangle-exclamation',
         variant: 'error',
@@ -101,7 +187,7 @@ export const useStoreAuth = defineStore('auth', () => {
       errorMessage.value = message
       return false
     } finally {
-      loginSubmitting.value = false
+      preLoginSubmitting.value = false
     }
   }
 
@@ -402,6 +488,7 @@ export const useStoreAuth = defineStore('auth', () => {
   const reset = () => {
     user.value = null
     permissions.value = []
+    mfaRequired.value = false
     pendingPasswordToken.value = null
     pendingPasswordTokenIssuedAt.value = null
     authSessionStorage.clearPendingPasswordToken()
@@ -445,6 +532,10 @@ export const useStoreAuth = defineStore('auth', () => {
     authSessionStorage.clearPendingPasswordToken()
   }
 
+  const clearMfaRequired = () => {
+    mfaRequired.value = false
+  }
+
   const handleSidebarCollapse = () => {
     sidebar.toggleCollapse = !sidebar.toggleCollapse
   }
@@ -464,6 +555,7 @@ export const useStoreAuth = defineStore('auth', () => {
     permissions,
     sidebar,
     loginSubmitting,
+    preLoginSubmitting,
     registerSubmitting,
     forgotPasswordSubmitting,
     verifySubmitting,
@@ -473,6 +565,7 @@ export const useStoreAuth = defineStore('auth', () => {
     updateProfileSubmitting,
     updateAvatarSubmitting,
     loginError,
+    mfaRequired,
     messageAlert,
     successMessage,
     errorMessage,
@@ -485,6 +578,7 @@ export const useStoreAuth = defineStore('auth', () => {
     pendingPasswordTokenIssuedAt,
     emailAvailable,
     login,
+    preLogin,
     register,
     forgotPassword,
     checkEmailAvailability,
@@ -501,6 +595,7 @@ export const useStoreAuth = defineStore('auth', () => {
     setPendingRecoveryEmail,
     setPendingPasswordToken,
     clearPendingPasswordToken,
+    clearMfaRequired,
     handleSidebarCollapse,
     handleSidebarMobile,
     hasPermission,

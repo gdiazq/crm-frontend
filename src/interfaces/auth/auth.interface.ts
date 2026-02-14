@@ -12,11 +12,25 @@ export interface AuthUser {
 export interface AuthLoginPayload {
   email: string
   password: string
+  totpCode?: string
 }
 
 export interface AuthLoginForm {
   email: string
   password: string
+  totpCode: string
+}
+
+export interface AuthLoginErrorResponse {
+  message?: string
+  error?: string
+  mfaRequired?: boolean
+  mfa_required?: boolean
+}
+
+export interface AuthPreLoginResponse {
+  mfaRequired?: boolean
+  mfa_required?: boolean
 }
 
 export interface AuthRegisterPayload {

@@ -8,10 +8,12 @@ import type {
   PasswordRequirement,
 } from '@/interfaces'
 
-export const mapperLoginPayload = (email: string, password: string): AuthLoginPayload => {
+export const mapperLoginPayload = (email: string, password: string, totpCode = ''): AuthLoginPayload => {
+  const normalizedTotpCode = totpCode.trim()
   return {
     email: email.trim(),
     password,
+    ...(normalizedTotpCode ? { totpCode: normalizedTotpCode } : {}),
   }
 }
 
