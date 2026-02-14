@@ -4,7 +4,9 @@ import {
   initialSettingsDevices,
   initialSettingsMfaState,
   initialSettingsStatusMessage,
+  initialSettingsTab,
   settingsMfaSetupSteps,
+  settingsTabs,
 } from '@/factories'
 import {
   mapperFindSettingDeviceById,
@@ -17,6 +19,8 @@ export const useStoreSettings = defineStore('settings', () => {
   const statusMessage = ref(initialSettingsStatusMessage)
   const devices = ref([...initialSettingsDevices])
   const mfaSetupSteps = ref([...settingsMfaSetupSteps])
+  const tabs = ref([...settingsTabs])
+  const activeTab = ref(initialSettingsTab)
 
   const activeSessions = computed(() => devices.value.length)
   const otherSessions = computed(() => devices.value.filter((device) => !device.current))
@@ -77,11 +81,17 @@ export const useStoreSettings = defineStore('settings', () => {
     statusMessage.value = message
   }
 
+  const setActiveTab = (tab: typeof activeTab.value) => {
+    activeTab.value = tab
+  }
+
   return {
     mfaState,
     statusMessage,
     devices,
     mfaSetupSteps,
+    tabs,
+    activeTab,
     activeSessions,
     otherSessions,
     mfaStatusLabel,
@@ -92,5 +102,6 @@ export const useStoreSettings = defineStore('settings', () => {
     logoutDevice,
     logoutAllOtherDevices,
     setStatusMessage,
+    setActiveTab,
   }
 })

@@ -13,6 +13,13 @@ export interface SettingMfaState {
   lastVerification: string
 }
 
+export type SettingTabKey = 'account' | 'mfa'
+
+export interface SettingTabOption {
+  key: SettingTabKey
+  label: string
+}
+
 export interface SettingUpdateProfilePayload {
   id: number
   email: string

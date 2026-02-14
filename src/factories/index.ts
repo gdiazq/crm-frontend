@@ -20,9 +20,11 @@ import {
   initialSettingsDevices,
   initialSettingsMfaState,
   initialSettingsStatusMessage,
+  initialSettingsTab,
   initialUpdateAvatarForm,
   initialUpdateProfileForm,
   settingsMfaSetupSteps,
+  settingsTabs,
   settingsUpdateProfileValidationRules,
 } from './setting.factory'
 import {
@@ -42,6 +44,7 @@ export {
   initialSettingsDevices,
   initialSettingsMfaState,
   initialSettingsStatusMessage,
+  initialSettingsTab,
   initialUpdateAvatarForm,
   initialUpdateProfileForm,
   initialVerifyEmailForm,
@@ -54,6 +57,7 @@ export {
   loginValidationRules,
   registerValidationRules,
   settingsMfaSetupSteps,
+  settingsTabs,
   settingsUpdateProfileValidationRules,
   verifyEmailValidationRules,
 }

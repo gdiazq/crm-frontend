@@ -1,6 +1,8 @@
 import type {
   SettingDeviceSession,
   SettingMfaState,
+  SettingTabKey,
+  SettingTabOption,
   SettingUpdateAvatarForm,
   SettingUpdateProfileForm,
   ValidationRule,
@@ -26,6 +28,13 @@ export const initialSettingsMfaState: SettingMfaState = {
 }
 
 export const initialSettingsStatusMessage = 'Configuracion usando datos mock para integrar backend luego.'
+
+export const initialSettingsTab: SettingTabKey = 'account'
+
+export const settingsTabs: SettingTabOption[] = [
+  { key: 'account', label: 'Informacion de la cuenta' },
+  { key: 'mfa', label: 'MFA y sesiones' },
+]
 
 export const settingsMfaSetupSteps: string[] = [
   '1. Instala Google Authenticator, Microsoft Authenticator o Authy.',

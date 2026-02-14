@@ -22,6 +22,8 @@ import type {
 import type {
   SettingDeviceSession,
   SettingMfaState,
+  SettingTabKey,
+  SettingTabOption,
   SettingUpdateAvatarForm,
   SettingUpdateAvatarPayload,
   SettingUpdateProfileForm,
@@ -56,6 +58,8 @@ export type {
   SettingUpdateAvatarForm,
   SettingDeviceSession,
   SettingMfaState,
+  SettingTabKey,
+  SettingTabOption,
   AuthVerifyEmailPayload,
   AuthVerifyEmailForm,
   AuthVerifyEmailResponse,

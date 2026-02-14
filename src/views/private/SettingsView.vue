@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { InputComponent } from '@/components'
+import { InputComponent, TabsComponent } from '@/components'
 import { useFormValidation } from '@/composables'
 import {
   initialUpdateAvatarForm,
@@ -19,6 +19,8 @@ const {
   statusMessage,
   devices,
   mfaSetupSteps,
+  tabs,
+  activeTab,
   activeSessions,
   mfaStatusLabel,
   mfaStatusClass,
@@ -44,11 +46,16 @@ const avatarInitials = computed(() => {
   const value = `${first}${last}`.trim().toUpperCase()
   return value || 'U'
 })
+const showAccountTab = computed(() => activeTab.value === 'account')
+const showMfaTab = computed(() => activeTab.value === 'mfa')
 const handleEnableMfa = () => storeSettings.enableMfa()
 const handleDisableMfa = () => storeSettings.disableMfa()
 const handleVerifyMfa = () => storeSettings.verifyMfa()
 const handleLogoutDevice = (id: string) => storeSettings.logoutDevice(id)
 const handleLogoutAllOtherDevices = () => storeSettings.logoutAllOtherDevices()
+const handleTabChange = (tab: 'account' | 'mfa') => {
+  storeSettings.setActiveTab(tab)
+}
 
 const handleSaveProfile = async () => {
   if (!validateProfile()) {
@@ -160,7 +167,13 @@ watch(
       <p class="mt-2 text-xs text-cyan-700 dark:text-cyan-300">{{ statusMessage }}</p>
     </section>
 
-    <section class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900/60">
+    <TabsComponent
+      :tabs="tabs"
+      :active-tab="activeTab"
+      :on-tab-change="handleTabChange"
+    />
+
+    <section v-if="showAccountTab" class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900/60">
       <h2 class="text-lg font-semibold">Informacion de la cuenta</h2>
       <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
         Actualiza tus datos personales asociados a la cuenta.
@@ -276,7 +289,7 @@ watch(
       </div>
     </section>
 
-    <section class="grid gap-6 lg:grid-cols-2">
+    <section v-if="showMfaTab" class="grid gap-6 lg:grid-cols-2">
       <article class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900/60">
         <h2 class="text-lg font-semibold">Estado de MFA</h2>
         <p class="mt-2 text-sm">
@@ -334,7 +347,7 @@ watch(
       </article>
     </section>
 
-    <section class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900/60">
+    <section v-if="showMfaTab" class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900/60">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 class="text-lg font-semibold">Sesiones por Dispositivo</h2>
