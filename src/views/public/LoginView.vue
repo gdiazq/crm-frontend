@@ -3,6 +3,12 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle } from '@/components'
+import {
+  AUTH_ROUTE_HOME,
+  AUTH_ROUTE_LOGIN_CREDENTIALS,
+  AUTH_ROUTE_RECOVERY,
+  REMEMBER_EMAIL_STORAGE_KEY,
+} from '@/constants'
 import { initialPreLoginForm, preLoginValidationRules } from '@/factories'
 import { useFormValidation } from '@/composables'
 import { mapperPreLoginPayload } from '@/mappers'
@@ -26,11 +32,11 @@ const handleEmailValue = (value: string) => {
 }
 
 const handleGoHome = () => {
-  router.push('/')
+  router.push(AUTH_ROUTE_HOME)
 }
 
 const handleRecovery = () => {
-  router.push('/recovery')
+  router.push(AUTH_ROUTE_RECOVERY)
 }
 
 const submitForm = async () => {
@@ -42,17 +48,17 @@ const submitForm = async () => {
   if (!success) return
 
   if (remindMe.value) {
-    localStorage.setItem('rememberEmail', form.value.email)
+    localStorage.setItem(REMEMBER_EMAIL_STORAGE_KEY, form.value.email)
   } else {
-    localStorage.removeItem('rememberEmail')
+    localStorage.removeItem(REMEMBER_EMAIL_STORAGE_KEY)
   }
 
-  router.push('/login/credentials')
+  router.push(AUTH_ROUTE_LOGIN_CREDENTIALS)
 }
 
 onMounted(() => {
   storePreLogin.resetStatus()
-  const rememberedEmail = localStorage.getItem('rememberEmail')
+  const rememberedEmail = localStorage.getItem(REMEMBER_EMAIL_STORAGE_KEY)
   if (rememberedEmail) {
     form.value.email = rememberedEmail
     remindMe.value = true

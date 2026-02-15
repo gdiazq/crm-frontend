@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, PasswordInputComponent, ThemeToggle } from '@/components'
+import { AUTH_ROUTE_LOGIN } from '@/constants'
 import { initialCreatePasswordForm } from '@/factories'
 import { mapperCreatePasswordPayload, mapperMissingPasswordRequirements, mapperPasswordRequirements } from '@/mappers'
 import { useStoreAuth, useStoreTheme } from '@/stores'
@@ -68,7 +69,7 @@ const clearTimers = () => {
 const redirectToLoginByExpiration = () => {
   clearTimers()
   storeAuth.clearPendingPasswordToken()
-  router.push('/login')
+  router.push(AUTH_ROUTE_LOGIN)
 }
 
 const setupTokenExpiration = () => {
@@ -114,12 +115,12 @@ const submitForm = async () => {
   if (success) {
     clearTimers()
     storeAuth.reset()
-    router.push('/login')
+    router.push(AUTH_ROUTE_LOGIN)
   }
 }
 
 const handleGoLogin = () => {
-  router.push('/login')
+  router.push(AUTH_ROUTE_LOGIN)
 }
 
 onMounted(() => {

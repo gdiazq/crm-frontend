@@ -9,6 +9,7 @@ import RecoveryView from '@/views/public/RecoveryView.vue'
 import RegisterView from '@/views/public/RegisterView.vue'
 import VerifyEmailView from '@/views/public/VerifyEmailView.vue'
 import CreatePasswordView from '@/views/public/CreatePasswordView.vue'
+import DashboardExampleView from '@/views/public/DashboardExampleView.vue'
 import LogoutView from '@/views/public/LogoutView.vue'
 import HomeView from '@/views/HomeView.vue'
 import DashboardView from '@/views/private/DashboardView.vue'
@@ -112,6 +113,20 @@ const routes: RouteRecordRaw[] = [
       permissionType: 'canRead',
       requiresPermissions: false,
       module: 'Logout',
+      parent: '',
+    },
+  },
+  {
+    path: '/dashboard-example',
+    name: 'dashboard-example',
+    component: DashboardExampleView,
+    meta: {
+      title: 'Dashboard Publico',
+      layout: 'LayoutPublicDefault',
+      requiresAuth: false,
+      permissionType: 'canRead',
+      requiresPermissions: false,
+      module: 'DashboardExample',
       parent: '',
     },
   },

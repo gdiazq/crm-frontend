@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { AUTH_ROUTE_HOME } from '@/constants'
 import { useStoreAuth } from '@/stores'
 
 const router = useRouter()
@@ -8,7 +9,7 @@ const storeAuth = useStoreAuth()
 
 onMounted(async () => {
   await storeAuth.logout()
-  await router.push('/')
+  await router.push(AUTH_ROUTE_HOME)
 })
 </script>
 

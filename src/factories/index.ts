@@ -10,6 +10,7 @@ import {
 } from './auth.factory'
 import { initialPreLoginForm } from './pre-login.factory'
 import { initialLoginCredentialsForm } from './login-credentials.factory'
+import { initialDashboardExample } from './dashboard-example.factory'
 import {
   initialCounterNotification,
   initialErrorMessageNotification,
@@ -45,6 +46,7 @@ export {
   initialLoginForm,
   initialPreLoginForm,
   initialLoginCredentialsForm,
+  initialDashboardExample,
   initialPasswordRequirements,
   initialRegisterForm,
   initialResendVerificationForm,

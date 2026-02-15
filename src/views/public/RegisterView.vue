@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle } from '@/components'
+import { AUTH_ROUTE_HOME, AUTH_ROUTE_VERIFY_EMAIL } from '@/constants'
 import { initialRegisterForm, registerValidationRules } from '@/factories'
 import { useFormValidation } from '@/composables'
 import { mapperRegisterPayload } from '@/mappers'
@@ -88,12 +89,12 @@ const submitForm = async () => {
   const success = await storeAuth.register(payload)
   if (success) {
     storeAuth.setPendingVerifyEmail(payload.email)
-    router.push('/verify-email')
+    router.push(AUTH_ROUTE_VERIFY_EMAIL)
   }
 }
 
 const handleGoHome = () => {
-  router.push('/')
+  router.push(AUTH_ROUTE_HOME)
 }
 
 onBeforeUnmount(() => {

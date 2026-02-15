@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle } from '@/components'
+import { AUTH_ROUTE_LOGIN, AUTH_ROUTE_VERIFY_EMAIL } from '@/constants'
 import { initialForgotPasswordForm } from '@/factories'
 import { mapperForgotPasswordPayload } from '@/mappers'
 import { useStoreAuth, useStoreTheme } from '@/stores'
@@ -37,14 +38,14 @@ const submitForm = async () => {
   const success = await storeAuth.forgotPassword(payload)
   if (success) {
     storeAuth.setPendingVerifyEmail(payload.email)
-    router.push('/verify-email')
+    router.push(AUTH_ROUTE_VERIFY_EMAIL)
   }
 }
 
 const handleGoLogin = () => {
   errorMessage.value = null
   successMessage.value = null
-  router.push('/login')
+  router.push(AUTH_ROUTE_LOGIN)
 }
 
 onMounted(() => {

@@ -3,6 +3,11 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, PasswordInputComponent, ThemeToggle } from '@/components'
+import {
+  AUTH_ROUTE_DASHBOARD,
+  AUTH_ROUTE_LOGIN,
+  AUTH_ROUTE_RECOVERY,
+} from '@/constants'
 import { initialLoginCredentialsForm, loginCredentialsValidationRules } from '@/factories'
 import { useFormValidation } from '@/composables'
 import { useStoreAuth, useStoreLoginCredentials, useStoreTheme } from '@/stores'
@@ -21,11 +26,11 @@ const controlShowAlert = computed(() => storeLoginCredentials.loginError)
 
 const handleGoToPreLogin = () => {
   storeLoginCredentials.clearSession()
-  router.push('/login')
+  router.push(AUTH_ROUTE_LOGIN)
 }
 
 const handleRecovery = () => {
-  router.push('/recovery')
+  router.push(AUTH_ROUTE_RECOVERY)
 }
 
 const handleTogglePassword = () => {
@@ -49,7 +54,7 @@ const submitForm = async () => {
   const success = await storeLoginCredentials.submitLogin(form.value)
   if (!success) return
 
-  router.push('/dashboard')
+  router.push(AUTH_ROUTE_DASHBOARD)
 }
 
 const handleResetViewErrors = () => {
@@ -65,7 +70,7 @@ onMounted(() => {
   handleResetViewErrors()
   const hasSession = storeLoginCredentials.hydrate()
   if (!hasSession) {
-    router.push('/login')
+    router.push(AUTH_ROUTE_LOGIN)
     return
   }
 })

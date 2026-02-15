@@ -1,0 +1,124 @@
+{
+  "seller": {
+    "name": "Daniela Mena",
+    "role": "Vendedora Senior",
+    "territory": "Zona Norte"
+  },
+  "periodLabel": "Rendimiento comercial - Agosto 2026",
+  "kpis": [
+    {
+      "id": "kpi-sales",
+      "label": "Ventas cerradas",
+      "value": 98500000,
+      "unit": "currency",
+      "variation": 12
+    },
+    {
+      "id": "kpi-conversion",
+      "label": "Tasa de conversion",
+      "value": 27,
+      "unit": "percent",
+      "variation": 5
+    },
+    {
+      "id": "kpi-tickets",
+      "label": "Cotizaciones enviadas",
+      "value": 43,
+      "unit": "number",
+      "variation": -3
+    },
+    {
+      "id": "kpi-renewals",
+      "label": "Renovaciones",
+      "value": 19,
+      "unit": "number",
+      "variation": 8
+    }
+  ],
+  "pipeline": [
+    {
+      "id": "pipe-prospect",
+      "label": "Prospeccion",
+      "count": 24,
+      "amount": 126000000
+    },
+    {
+      "id": "pipe-qualification",
+      "label": "Calificacion",
+      "count": 16,
+      "amount": 93500000
+    },
+    {
+      "id": "pipe-proposal",
+      "label": "Propuesta enviada",
+      "count": 9,
+      "amount": 52200000
+    },
+    {
+      "id": "pipe-negotiation",
+      "label": "Negociacion",
+      "count": 6,
+      "amount": 34700000
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-1",
+      "title": "Llamar a cliente Minera Sol para cierre trimestral",
+      "dueAt": "Hoy 10:30",
+      "priority": "alta"
+    },
+    {
+      "id": "task-2",
+      "title": "Enviar propuesta a Transportes Andino",
+      "dueAt": "Hoy 13:00",
+      "priority": "media"
+    },
+    {
+      "id": "task-3",
+      "title": "Actualizar forecast semanal en CRM",
+      "dueAt": "Hoy 17:30",
+      "priority": "baja"
+    }
+  ],
+  "topClients": [
+    {
+      "id": "client-1",
+      "name": "Fernanda Olivares",
+      "company": "Minera Sol",
+      "amount": 25800000,
+      "status": "activo"
+    },
+    {
+      "id": "client-2",
+      "name": "Javier Rivas",
+      "company": "Transportes Andino",
+      "amount": 18400000,
+      "status": "activo"
+    },
+    {
+      "id": "client-3",
+      "name": "Camila Vega",
+      "company": "Retail Nova",
+      "amount": 9200000,
+      "status": "atrasado"
+    }
+  ],
+  "recentActivity": [
+    {
+      "id": "act-1",
+      "text": "Reunion completada con Minera Sol (renovacion anual).",
+      "at": "Hace 25 min"
+    },
+    {
+      "id": "act-2",
+      "text": "Se creo oportunidad nueva para Transportes Andino.",
+      "at": "Hace 1 h"
+    },
+    {
+      "id": "act-3",
+      "text": "Cotizacion aprobada por cliente Retail Nova.",
+      "at": "Hace 2 h"
+    }
+  ]
+}

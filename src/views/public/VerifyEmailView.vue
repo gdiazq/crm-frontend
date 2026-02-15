@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, ResendVerificationModal, ThemeToggle, VerificationCodeInputComponent } from '@/components'
+import { AUTH_ROUTE_CREATE_PASSWORD, AUTH_ROUTE_LOGIN } from '@/constants'
 import { initialResendVerificationForm, initialVerifyEmailForm, verifyEmailValidationRules } from '@/factories'
 import { useFormValidation } from '@/composables'
 import { mapperResendVerificationPayload, mapperVerifyEmailPayload } from '@/mappers'
@@ -98,12 +99,12 @@ const submitForm = async () => {
   const payload = mapperVerifyEmailPayload(pendingVerifyEmail.value, form.value.code)
   const success = await storeAuth.verifyEmail(payload)
   if (success) {
-    router.push('/create-password')
+    router.push(AUTH_ROUTE_CREATE_PASSWORD)
   }
 }
 
 const handleGoLogin = () => {
-  router.push('/login')
+  router.push(AUTH_ROUTE_LOGIN)
 }
 
 onMounted(() => {

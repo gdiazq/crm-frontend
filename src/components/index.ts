@@ -5,6 +5,8 @@ import ResendVerificationModal from './common/ResendVerificationModal.vue'
 import NavbarComponent from './common/NavbarComponent.vue'
 import DrodownComponente from './common/DrodownComponente.vue'
 import TabsComponent from './common/TabsComponent.vue'
+import SellerDashboardMainComponent from './dashboard/SellerDashboardMainComponent.vue'
+import SellerDashboardSideComponent from './dashboard/SellerDashboardSideComponent.vue'
 import FooterComponent from './frontpage/FooterComponent.vue'
 import FeatureGrid from './frontpage/FeatureGrid.vue'
 import HeroContent from './frontpage/HeroContent.vue'
@@ -24,6 +26,8 @@ export {
   NavbarComponent,
   DrodownComponente,
   TabsComponent,
+  SellerDashboardMainComponent,
+  SellerDashboardSideComponent,
   FooterComponent,
   FeatureGrid,
   HeroContent,

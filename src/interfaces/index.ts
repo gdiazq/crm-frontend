@@ -58,6 +58,20 @@ import type {
   ValidationRule,
   ValidationTrigger,
 } from './validation/validation.interface'
+import type {
+  DashboardExample,
+  DashboardExampleActivity,
+  DashboardExampleActivityRaw,
+  DashboardExampleClient,
+  DashboardExampleClientRaw,
+  DashboardExampleKpi,
+  DashboardExampleKpiRaw,
+  DashboardExamplePipelineStage,
+  DashboardExamplePipelineStageRaw,
+  DashboardExampleRaw,
+  DashboardExampleTask,
+  DashboardExampleTaskRaw,
+} from './dashboard/dashboard-example.interface'
 
 export type {
   CrmFeature,
@@ -110,4 +124,16 @@ export type {
   ValidationRule,
   ValidationOptions,
   ValidationTrigger,
+  DashboardExampleRaw,
+  DashboardExampleKpiRaw,
+  DashboardExamplePipelineStageRaw,
+  DashboardExampleTaskRaw,
+  DashboardExampleClientRaw,
+  DashboardExampleActivityRaw,
+  DashboardExample,
+  DashboardExampleKpi,
+  DashboardExamplePipelineStage,
+  DashboardExampleTask,
+  DashboardExampleClient,
+  DashboardExampleActivity,
 }

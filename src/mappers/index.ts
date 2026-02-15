@@ -13,6 +13,7 @@ import {
   mapperPreLoginPayload,
 } from './pre-login.mapper'
 import { mapperLoginCredentialsPayload } from './login-credentials.mapper'
+import { mapperDashboardExample } from './dashboard-example.mapper'
 import {
   mapperArchiveNotification,
   mapperMarkAsNotRead,
@@ -49,6 +50,7 @@ export {
   mapperPreLoginPayload,
   mapperPreLoginMfaRequired,
   mapperLoginCredentialsPayload,
+  mapperDashboardExample,
   mapperRegisterPayload,
   mapperVerifyEmailPayload,
   mapperResendVerificationPayload,

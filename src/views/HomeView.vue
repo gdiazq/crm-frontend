@@ -2,7 +2,14 @@
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { FeatureGrid, FooterComponent, HeroContent, HeroHeader, KpiPanel, ThemeToggle } from '@/components'
-import { CRM_FEATURES, CRM_STAGES, CRM_STATS } from '@/constants'
+import {
+  AUTH_ROUTE_DASHBOARD_EXAMPLE,
+  AUTH_ROUTE_LOGIN,
+  AUTH_ROUTE_REGISTER,
+  CRM_FEATURES,
+  CRM_STAGES,
+  CRM_STATS,
+} from '@/constants'
 import { useStoreTheme } from '@/stores'
 
 const router = useRouter()
@@ -10,15 +17,15 @@ const storeTheme = useStoreTheme()
 const { isDark } = storeToRefs(storeTheme)
 
 const handleGoRegister = () => {
-  router.push('/register')
+  router.push(AUTH_ROUTE_REGISTER)
 }
 
 const handleGoLogin = () => {
-  router.push('/login')
+  router.push(AUTH_ROUTE_LOGIN)
 }
 
 const handleGoDashboard = () => {
-  router.push('/dashboard')
+  router.push(AUTH_ROUTE_DASHBOARD_EXAMPLE)
 }
 </script>
 
