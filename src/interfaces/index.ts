@@ -7,7 +7,6 @@ import type {
   AuthForgotPasswordPayload,
   AuthForgotPasswordForm,
   AuthLoginErrorResponse,
-  AuthPreLoginResponse,
   AuthLoginForm,
   AuthLoginPayload,
   AuthRegisterForm,
@@ -21,6 +20,15 @@ import type {
   AuthUser,
   ModulePermission,
 } from './auth/auth.interface'
+import type {
+  AuthPreLoginForm,
+  AuthPreLoginPayload,
+  AuthPreLoginResponse,
+} from './auth/pre-login.interface'
+import type {
+  AuthLoginCredentialsForm,
+  AuthLoginCredentialsPayload,
+} from './auth/login-credentials.interface'
 import type {
   SettingDeviceSession,
   SettingMfaDisablePayload,
@@ -80,6 +88,10 @@ export type {
   AuthLoginForm,
   AuthLoginErrorResponse,
   AuthPreLoginResponse,
+  AuthPreLoginForm,
+  AuthPreLoginPayload,
+  AuthLoginCredentialsForm,
+  AuthLoginCredentialsPayload,
   AuthResendVerificationPayload,
   AuthResendVerificationForm,
   PasswordRequirement,

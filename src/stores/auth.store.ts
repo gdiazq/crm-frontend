@@ -11,7 +11,6 @@ import type {
   AuthCreatePasswordPayload,
   AuthForgotPasswordPayload,
   AuthLoginErrorResponse,
-  AuthPreLoginResponse,
   AuthLoginPayload,
   AuthResendVerificationPayload,
   AuthRegisterPayload,
@@ -38,7 +37,6 @@ export const useStoreAuth = defineStore('auth', () => {
 
   const loginSubmitting = ref(false)
   const registerSubmitting = ref(false)
-  const preLoginSubmitting = ref(false)
   const forgotPasswordSubmitting = ref(false)
   const verifySubmitting = ref(false)
   const createPasswordSubmitting = ref(false)
@@ -144,50 +142,6 @@ export const useStoreAuth = defineStore('auth', () => {
       return false
     } finally {
       loginSubmitting.value = false
-    }
-  }
-
-  const preLogin = async (email: string) => {
-    try {
-      preLoginSubmitting.value = true
-      loginError.value = false
-      errorMessage.value = null
-      successMessage.value = null
-
-      const { data } = await axiosInstance.post<AuthPreLoginResponse>('/auth/pre-login', {
-        email: email.trim(),
-      })
-
-      mfaRequired.value = data.mfaRequired === true || data.mfa_required === true
-      messageAlert.value = {
-        icon: mfaRequired.value ? 'fa-solid fa-shield-halved' : 'fa-solid fa-circle-info',
-        variant: 'info',
-        message: mfaRequired.value
-          ? 'Tu cuenta tiene MFA activo. Ingresa contraseña y codigo.'
-          : 'Ingresa tu contraseña para continuar.',
-      }
-      return true
-    } catch (error) {
-      errorBack.value = error
-      mfaRequired.value = false
-      let message = 'Correo invalido o no registrado.'
-
-      if (axios.isAxiosError(error)) {
-        const status = error.response?.status
-        if (status === 401 || status === 404) message = 'Correo invalido o no registrado.'
-        if (status === 400) message = 'Correo invalido.'
-      }
-
-      loginError.value = true
-      messageAlert.value = {
-        icon: 'fa-solid fa-triangle-exclamation',
-        variant: 'error',
-        message,
-      }
-      errorMessage.value = message
-      return false
-    } finally {
-      preLoginSubmitting.value = false
     }
   }
 
@@ -555,7 +509,6 @@ export const useStoreAuth = defineStore('auth', () => {
     permissions,
     sidebar,
     loginSubmitting,
-    preLoginSubmitting,
     registerSubmitting,
     forgotPasswordSubmitting,
     verifySubmitting,
@@ -578,7 +531,6 @@ export const useStoreAuth = defineStore('auth', () => {
     pendingPasswordTokenIssuedAt,
     emailAvailable,
     login,
-    preLogin,
     register,
     forgotPassword,
     checkEmailAvailability,

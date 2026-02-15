@@ -9,6 +9,11 @@ import {
   mapperVerifyEmailPayload,
 } from './auth.mapper'
 import {
+  mapperPreLoginMfaRequired,
+  mapperPreLoginPayload,
+} from './pre-login.mapper'
+import { mapperLoginCredentialsPayload } from './login-credentials.mapper'
+import {
   mapperArchiveNotification,
   mapperMarkAsNotRead,
   mapperMarkAsRead,
@@ -41,6 +46,9 @@ export {
   mapperCreatePasswordPayload,
   mapperForgotPasswordPayload,
   mapperLoginPayload,
+  mapperPreLoginPayload,
+  mapperPreLoginMfaRequired,
+  mapperLoginCredentialsPayload,
   mapperRegisterPayload,
   mapperVerifyEmailPayload,
   mapperResendVerificationPayload,

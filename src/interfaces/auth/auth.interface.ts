@@ -28,11 +28,6 @@ export interface AuthLoginErrorResponse {
   mfa_required?: boolean
 }
 
-export interface AuthPreLoginResponse {
-  mfaRequired?: boolean
-  mfa_required?: boolean
-}
-
 export interface AuthRegisterPayload {
   username: string
   email: string

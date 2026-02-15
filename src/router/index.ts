@@ -4,6 +4,7 @@ import { useStoreAuth } from '@/stores'
 import { handleAuthentication } from '@/middlewares/auth.middleware'
 
 import LoginView from '@/views/public/LoginView.vue'
+import LoginCredentialsView from '@/views/public/LoginCredentialsView.vue'
 import RecoveryView from '@/views/public/RecoveryView.vue'
 import RegisterView from '@/views/public/RegisterView.vue'
 import VerifyEmailView from '@/views/public/VerifyEmailView.vue'
@@ -27,6 +28,20 @@ const routes: RouteRecordRaw[] = [
       permissionType: 'canRead',
       requiresPermissions: false,
       module: 'Login',
+      parent: '',
+    },
+  },
+  {
+    path: '/login/credentials',
+    name: 'login-credentials',
+    component: LoginCredentialsView,
+    meta: {
+      title: 'Login',
+      layout: 'LayoutPublicDefault',
+      requiresAuth: false,
+      permissionType: 'canRead',
+      requiresPermissions: false,
+      module: 'LoginCredentials',
       parent: '',
     },
   },

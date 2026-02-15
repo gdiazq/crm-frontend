@@ -8,6 +8,8 @@ import {
   initialResendVerificationForm,
   initialVerifyEmailForm,
 } from './auth.factory'
+import { initialPreLoginForm } from './pre-login.factory'
+import { initialLoginCredentialsForm } from './login-credentials.factory'
 import {
   initialCounterNotification,
   initialErrorMessageNotification,
@@ -29,7 +31,9 @@ import {
   settingsUpdateProfileValidationRules,
 } from './setting.factory'
 import {
+  loginCredentialsValidationRules,
   loginValidationRules,
+  preLoginValidationRules,
   registerValidationRules,
   verifyEmailValidationRules,
 } from './validation.factory'
@@ -39,6 +43,8 @@ export {
   initialCreatePasswordForm,
   initialForgotPasswordForm,
   initialLoginForm,
+  initialPreLoginForm,
+  initialLoginCredentialsForm,
   initialPasswordRequirements,
   initialRegisterForm,
   initialResendVerificationForm,
@@ -56,6 +62,8 @@ export {
   initialStatusNotification,
   initialErrorMessageNotification,
   initialLoadingNotification,
+  preLoginValidationRules,
+  loginCredentialsValidationRules,
   loginValidationRules,
   registerValidationRules,
   settingsMfaSetupSteps,

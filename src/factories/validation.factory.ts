@@ -16,3 +16,11 @@ export const registerValidationRules: Record<string, ValidationRule> = {
 export const verifyEmailValidationRules: Record<string, ValidationRule> = {
   code: { required: true, minLength: 6 },
 }
+
+export const preLoginValidationRules: Record<string, ValidationRule> = {
+  email: { required: true, email: true },
+}
+
+export const loginCredentialsValidationRules: Record<string, ValidationRule> = {
+  password: { required: true, minLength: 6 },
+}
