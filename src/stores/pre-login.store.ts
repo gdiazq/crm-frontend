@@ -32,6 +32,11 @@ export const useStorePreLogin = defineStore('preLogin', () => {
     sessionStorage.removeItem(PRE_LOGIN_MFA_REQUIRED_KEY)
   }
 
+  const resetStatus = () => {
+    loginError.value = false
+    errorMessage.value = ''
+  }
+
   const preLogin = async (email: string) => {
     try {
       preLoginSubmitting.value = true
@@ -69,5 +74,6 @@ export const useStorePreLogin = defineStore('preLogin', () => {
     getPreLoginEmail,
     getPreLoginMfaRequired,
     clearPreLoginSession,
+    resetStatus,
   }
 })

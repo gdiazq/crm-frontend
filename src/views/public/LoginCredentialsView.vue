@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, PasswordInputComponent, ThemeToggle } from '@/components'
 import { initialLoginCredentialsForm, loginCredentialsValidationRules } from '@/factories'
 import { useFormValidation } from '@/composables'
-import { useStoreLoginCredentials, useStoreTheme } from '@/stores'
+import { useStoreAuth, useStoreLoginCredentials, useStoreTheme } from '@/stores'
 
 const router = useRouter()
 const storeTheme = useStoreTheme()
+const storeAuth = useStoreAuth()
 const storeLoginCredentials = useStoreLoginCredentials()
 const { isDark } = storeToRefs(storeTheme)
 const form = ref({ ...initialLoginCredentialsForm })
-const remindMe = ref(false)
 const showPassword = ref(false)
 const { errors, validateField, onValidation } = useFormValidation(form, loginCredentialsValidationRules)
 
@@ -49,20 +49,29 @@ const submitForm = async () => {
   const success = await storeLoginCredentials.submitLogin(form.value)
   if (!success) return
 
-  if (remindMe.value) {
-    localStorage.setItem('rememberEmail', storeLoginCredentials.email)
-  } else {
-    localStorage.removeItem('rememberEmail')
-  }
   router.push('/dashboard')
 }
 
+const handleResetViewErrors = () => {
+  storeAuth.loginError = false
+  storeAuth.messageAlert = {
+    icon: 'fa-solid fa-circle-info',
+    variant: 'info',
+    message: '',
+  }
+}
+
 onMounted(() => {
+  handleResetViewErrors()
   const hasSession = storeLoginCredentials.hydrate()
   if (!hasSession) {
     router.push('/login')
     return
   }
+})
+
+onBeforeUnmount(() => {
+  handleResetViewErrors()
 })
 </script>
 
@@ -118,11 +127,7 @@ onMounted(() => {
             :on-value-change="handleTotpCodeValue"
           />
 
-          <div class="flex items-center justify-between text-sm">
-            <label class="inline-flex items-center gap-2">
-              <input v-model="remindMe" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-400" />
-              <span class="text-slate-600 dark:text-slate-300">Recordarme</span>
-            </label>
+          <div class="flex items-center justify-end text-sm">
             <button
               type="button"
               class="font-semibold text-cyan-700 transition hover:text-cyan-800 dark:text-cyan-300 dark:hover:text-cyan-200"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle } from '@/components'
@@ -13,16 +13,24 @@ const storeTheme = useStoreTheme()
 const storePreLogin = useStorePreLogin()
 const { isDark } = storeToRefs(storeTheme)
 const form = ref({ ...initialPreLoginForm })
+const remindMe = ref(false)
 const { errors, validateField, onValidation } = useFormValidation(form, preLoginValidationRules)
 
 const controlShowError = computed(() => storePreLogin.loginError)
 
 const handleEmailValue = (value: string) => {
   form.value.email = value
+  if (storePreLogin.loginError) {
+    storePreLogin.resetStatus()
+  }
 }
 
 const handleGoHome = () => {
   router.push('/')
+}
+
+const handleRecovery = () => {
+  router.push('/recovery')
 }
 
 const submitForm = async () => {
@@ -33,14 +41,26 @@ const submitForm = async () => {
   const success = await storePreLogin.preLogin(payload.email)
   if (!success) return
 
+  if (remindMe.value) {
+    localStorage.setItem('rememberEmail', form.value.email)
+  } else {
+    localStorage.removeItem('rememberEmail')
+  }
+
   router.push('/login/credentials')
 }
 
 onMounted(() => {
+  storePreLogin.resetStatus()
   const rememberedEmail = localStorage.getItem('rememberEmail')
   if (rememberedEmail) {
     form.value.email = rememberedEmail
+    remindMe.value = true
   }
+})
+
+onBeforeUnmount(() => {
+  storePreLogin.resetStatus()
 })
 </script>
 
@@ -90,6 +110,20 @@ onMounted(() => {
           >
             {{ storePreLogin.preLoginSubmitting ? 'Validando...' : 'Continuar' }}
           </ButtonComponent>
+
+          <div class="flex items-center justify-between text-sm">
+            <label class="inline-flex items-center gap-2">
+              <input v-model="remindMe" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-400" />
+              <span class="text-slate-600 dark:text-slate-300">Recordarme</span>
+            </label>
+            <button
+              type="button"
+              class="font-semibold text-cyan-700 transition hover:text-cyan-800 dark:text-cyan-300 dark:hover:text-cyan-200"
+              @click="handleRecovery"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
 
           <div
             v-if="controlShowError"
