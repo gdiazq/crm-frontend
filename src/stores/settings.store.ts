@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import axios from 'axios'
 import { axiosInstance } from '@/config'
 import { useDeviceId } from '@/composables'
+import type { SettingDeviceSession, SettingMfaSetupData, SettingMfaState } from '@/interfaces'
 import {
   initialSettingsDevices,
   initialSettingsMfaSetupData,
@@ -29,6 +30,7 @@ export const useStoreSettings = defineStore('settings', () => {
   const mfaState = ref({ ...initialSettingsMfaState })
   const mfaSetupData = ref({ ...initialSettingsMfaSetupData })
   const mfaVerificationCode = ref('')
+  const mfaStatusEmail = ref('')
   const statusMessage = ref(initialSettingsStatusMessage)
   const devices = ref([...initialSettingsDevices])
   const mfaSetupSteps = ref([...settingsMfaSetupSteps])
@@ -67,21 +69,20 @@ export const useStoreSettings = defineStore('settings', () => {
     mfaVerificationCode.value = value
   }
 
+  const setMfaStatusEmail = (email: string) => {
+    mfaStatusEmail.value = email
+  }
+
   const clearMfaVerificationCode = () => {
     mfaVerificationCode.value = ''
   }
 
-  const getMfaStatus = async (username: string) => {
-    if (!username) return
+  const getMfaStatus = async (email: string) => {
+    if (!email) return
     try {
       loadingMfaStatus.value = true
       errorBack.value = null
-      const { data } = await axiosInstance.get(`${AUTH_BASE_PATH}/mfa/status`, {
-        headers: {
-          'X-Username': username,
-          'X-Device-Id': getDeviceId(),
-        },
-      })
+      const { data } = await axiosInstance.get<SettingMfaState>(`${AUTH_BASE_PATH}/mfa/status/${encodeURIComponent(email)}`)
       mfaState.value = mapperMfaStateFromResponse(data)
     } catch (error) {
       errorBack.value = error
@@ -96,7 +97,7 @@ export const useStoreSettings = defineStore('settings', () => {
     try {
       loadingMfaAction.value = true
       errorBack.value = null
-      const { data } = await axiosInstance.post(
+      const { data } = await axiosInstance.post<SettingMfaSetupData>(
         `${AUTH_BASE_PATH}/mfa/setup`,
         { username },
         {
@@ -106,7 +107,9 @@ export const useStoreSettings = defineStore('settings', () => {
         },
       )
       mfaSetupData.value = mapperMfaSetupDataFromResponse(data)
-      await getMfaStatus(username)
+      if (mfaStatusEmail.value) {
+        await getMfaStatus(mfaStatusEmail.value)
+      }
       setStatusMessage('Setup MFA iniciado. Escanea el QR y verifica con un codigo de 6 digitos.')
       return true
     } catch (error) {
@@ -144,7 +147,9 @@ export const useStoreSettings = defineStore('settings', () => {
         },
       )
       clearMfaVerificationCode()
-      await getMfaStatus(username)
+      if (mfaStatusEmail.value) {
+        await getMfaStatus(mfaStatusEmail.value)
+      }
       setStatusMessage('MFA verificado correctamente.')
       return true
     } catch (error) {
@@ -174,7 +179,9 @@ export const useStoreSettings = defineStore('settings', () => {
           },
         },
       )
-      await getMfaStatus(username)
+      if (mfaStatusEmail.value) {
+        await getMfaStatus(mfaStatusEmail.value)
+      }
       setStatusMessage('MFA deshabilitado correctamente.')
       return true
     } catch (error) {
@@ -195,7 +202,7 @@ export const useStoreSettings = defineStore('settings', () => {
     try {
       loadingSessions.value = true
       errorBack.value = null
-      const { data } = await axiosInstance.get(`${AUTH_BASE_PATH}/sessions`, {
+      const { data } = await axiosInstance.get<SettingDeviceSession[]>(`${AUTH_BASE_PATH}/sessions`, {
         headers: {
           'X-Username': username,
         },
@@ -236,10 +243,11 @@ export const useStoreSettings = defineStore('settings', () => {
     }
   }
 
-  const loadMfaAndSessions = async (username: string) => {
-    if (!username) return
+  const loadMfaAndSessions = async (username: string, email: string) => {
+    if (!username || !email) return
+    setMfaStatusEmail(email)
     await Promise.all([
-      getMfaStatus(username),
+      getMfaStatus(email),
       getSessions(username),
     ])
   }
@@ -294,6 +302,7 @@ export const useStoreSettings = defineStore('settings', () => {
     setStatusMessage,
     setActiveTab,
     setMfaVerificationCode,
+    setMfaStatusEmail,
     clearMfaVerificationCode,
     getMfaStatus,
     mutationMfaSetup,

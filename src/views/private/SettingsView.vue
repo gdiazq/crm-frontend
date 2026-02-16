@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import QRCode from 'qrcode'
-import { InputComponent, TabsComponent } from '@/components'
+import { InputComponent, ButtonComponent, TabsComponent } from '@/components'
 import { useFormValidation } from '@/composables'
 import {
   initialUpdateAvatarForm,
@@ -58,6 +58,7 @@ const avatarInitials = computed(() => {
 const showAccountTab = computed(() => activeTab.value === 'account')
 const showMfaTab = computed(() => activeTab.value === 'mfa')
 const currentUsername = computed(() => user.value?.username || '')
+const currentEmail = computed(() => user.value?.email || '')
 const buildOtpAuthUriFromSecret = (secret: string, username: string) => {
   const issuer = 'CRM'
   const encodedIssuer = encodeURIComponent(issuer)
@@ -230,7 +231,7 @@ const handleInitialProfile = () => {
 onMounted(async () => {
   await storeAuth.getCurrentUser()
   handleInitialProfile()
-  await storeSettings.loadMfaAndSessions(currentUsername.value)
+  await storeSettings.loadMfaAndSessions(currentUsername.value, currentEmail.value)
   await buildMfaQrImage()
 })
 </script>
@@ -283,13 +284,13 @@ onMounted(async () => {
           >
 
           <div class="mt-2 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              class="rounded-lg border border-cyan-500 px-3 py-2 text-sm font-semibold text-cyan-700 hover:bg-cyan-50 dark:border-cyan-300/60 dark:text-cyan-300 dark:hover:bg-cyan-900/20"
-              @click="handleOpenAvatarPicker"
-            >
-              Seleccionar imagen
-            </button>
+            <ButtonComponent
+              variant="outline"
+              size="md"
+              label="Seleccionar imagen"
+              class-name="border-cyan-500 text-cyan-700 dark:border-cyan-300/60 dark:text-cyan-300 dark:hover:bg-cyan-900/20"
+              :on-click="handleOpenAvatarPicker"
+            />
             <p class="truncate text-sm text-slate-600 dark:text-slate-300">
               {{ avatarForm.file?.name || 'Sin archivo seleccionado' }}
             </p>
@@ -301,14 +302,12 @@ onMounted(async () => {
         </div>
 
         <div class="ml-auto">
-          <button
-            type="button"
-            class="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
+          <ButtonComponent
+            variant="primary"
             :disabled="updateAvatarSubmitting"
-            @click="handleSaveAvatar"
-          >
-            {{ updateAvatarSubmitting ? 'Subiendo...' : 'Actualizar avatar' }}
-          </button>
+            :label="updateAvatarSubmitting ? 'Subiendo...' : 'Actualizar avatar'"
+            :on-click="handleSaveAvatar"
+          />
         </div>
       </div>
 
@@ -356,14 +355,12 @@ onMounted(async () => {
       </div>
 
       <div class="mt-4">
-        <button
-          type="button"
-          class="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
+        <ButtonComponent
+          variant="primary"
           :disabled="updateProfileSubmitting"
-          @click="handleSaveProfile"
-        >
-          {{ updateProfileSubmitting ? 'Guardando...' : 'Guardar cambios' }}
-        </button>
+          :label="updateProfileSubmitting ? 'Guardando...' : 'Guardar cambios'"
+          :on-click="handleSaveProfile"
+        />
       </div>
     </section>
 
@@ -383,25 +380,23 @@ onMounted(async () => {
         </p>
 
         <div class="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+          <ButtonComponent
+            v-if="!mfaState.enabled"
+            variant="success"
             :disabled="loadingMfaAction"
-            @click="handleEnableMfa"
-          >
-            {{ loadingMfaAction ? 'Procesando...' : 'Iniciar setup MFA' }}
-          </button>
-          <button
-            type="button"
-            class="rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white hover:bg-rose-700"
+            :label="loadingMfaAction ? 'Procesando...' : 'Iniciar setup MFA'"
+            :on-click="handleEnableMfa"
+          />
+          <ButtonComponent
+            v-if="mfaState.enabled"
+            variant="danger"
             :disabled="loadingMfaAction"
-            @click="handleDisableMfa"
-          >
-            Deshabilitar MFA
-          </button>
+            label="Deshabilitar MFA"
+            :on-click="handleDisableMfa"
+          />
         </div>
 
-        <div class="mt-4">
+        <div v-if="!mfaState.enabled" class="mt-4">
           <InputComponent
             :model-value="mfaVerificationCode"
             label="Codigo MFA"
@@ -411,15 +406,13 @@ onMounted(async () => {
           />
         </div>
 
-        <div class="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold hover:border-cyan-500 dark:border-slate-700 dark:bg-slate-900"
+        <div v-if="!mfaState.enabled" class="mt-3 flex flex-wrap gap-2">
+          <ButtonComponent
+            variant="outline"
             :disabled="loadingMfaAction"
-            @click="handleVerifyMfa"
-          >
-            Verificar codigo MFA
-          </button>
+            label="Verificar codigo MFA"
+            :on-click="handleVerifyMfa"
+          />
         </div>
       </article>
 
@@ -476,14 +469,12 @@ onMounted(async () => {
             Sesiones activas: {{ activeSessions }}
           </p>
         </div>
-        <button
-          type="button"
-          class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold hover:border-cyan-500 dark:border-slate-700 dark:bg-slate-900"
+        <ButtonComponent
+          variant="outline"
           :disabled="loadingSessions || loadingLogoutDevice"
-          @click="handleLogoutAllOtherDevices"
-        >
-          Desloguear otros dispositivos
-        </button>
+          label="Desloguear otros dispositivos"
+          :on-click="handleLogoutAllOtherDevices"
+        />
       </div>
 
       <div class="mt-4 space-y-3">
@@ -499,15 +490,13 @@ onMounted(async () => {
               <span v-if="device.current" class="ml-1 font-semibold text-emerald-600 dark:text-emerald-400">(Actual)</span>
             </p>
           </div>
-          <button
-            type="button"
-            class="rounded-lg px-3 py-2 text-xs font-semibold"
+          <ButtonComponent
+            :variant="device.current ? 'subtle' : 'danger'"
+            size="sm"
             :disabled="loadingLogoutDevice"
-            :class="device.current ? 'border border-slate-300 text-slate-500 dark:border-slate-700 dark:text-slate-400' : 'bg-rose-600 text-white hover:bg-rose-700'"
-            @click="handleLogoutDevice(device.id)"
-          >
-            Desloguear dispositivo
-          </button>
+            label="Desloguear dispositivo"
+            :on-click="() => handleLogoutDevice(device.id)"
+          />
         </article>
       </div>
     </section>
