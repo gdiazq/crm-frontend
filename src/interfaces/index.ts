@@ -50,7 +50,10 @@ export type {
 } from './notification'
 export type {
   SettingDeviceSession,
+  SettingDeviceSessionRaw,
   SettingMfaState,
+  SettingMfaStatusResponse,
+  SettingMfaSetupDataRaw,
   SettingMfaSetupData,
   SettingTabKey,
   SettingTabOption,

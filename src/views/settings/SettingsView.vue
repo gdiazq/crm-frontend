@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import QRCode from 'qrcode'
 import { InputComponent, ButtonComponent, TabsComponent } from '@/components'
 import { useFormValidation } from '@/composables'
+import { AUTH_ROUTE_LOGIN } from '@/constants'
 import { initialUpdateAvatarForm, initialUpdateProfileForm } from '@/factories'
 import { settingsUpdateProfileValidationRules } from '@/rules'
 import { mapperSettingProfileForm, mapperUpdateProfilePayload } from '@/mappers'
+import messages from '@/messages/messages'
 import { useStoreAuth, useStoreSettings } from '@/stores'
 
 const storeAuth = useStoreAuth()
 const storeSettings = useStoreSettings()
+const router = useRouter()
 const { user, updateProfileSubmitting, updateAvatarSubmitting } = storeToRefs(storeAuth)
 const {
   mfaState,
@@ -18,14 +22,12 @@ const {
   mfaVerificationCode,
   statusMessage,
   devices,
-  mfaSetupSteps,
   tabs,
   activeTab,
   activeSessions,
   mfaStatusLabel,
   mfaStatusClass,
   loadingMfaAction,
-  loadingSessions,
   loadingLogoutDevice,
 } = storeToRefs(storeSettings)
 
@@ -95,27 +97,21 @@ const buildMfaQrImage = async () => {
 }
 
 const handleEnableMfa = async () => {
-  const success = await storeSettings.enableMfa(currentUsername.value)
+  const success = await storeSettings.mutationMfaSetup(currentUsername.value)
   if (!success) return
   await buildMfaQrImage()
 }
-const handleDisableMfa = async () => storeSettings.disableMfa(currentUsername.value)
-const handleVerifyMfa = async () => storeSettings.verifyMfa(currentUsername.value)
-const handleLogoutDevice = async (id: string) => storeSettings.logoutDevice(currentUsername.value, id)
-const handleLogoutAllOtherDevices = async () => storeSettings.logoutAllOtherDevices(currentUsername.value)
+const handleDisableMfa = async () => storeSettings.mutationMfaDisable(currentUsername.value)
+const handleVerifyMfa = async () => storeSettings.mutationMfaVerify(currentUsername.value)
+const handleLogoutDevice = async (id: string) => {
+  await storeSettings.logoutDevice(id)
+  await storeAuth.logout()
+  router.push(AUTH_ROUTE_LOGIN)
+}
 const handleTabChange = (tab: 'account' | 'mfa') => {
   storeSettings.setActiveTab(tab)
 }
 const handleMfaCodeValue = (value: string) => storeSettings.setMfaVerificationCode(value)
-const handleCopySecret = async () => {
-  if (!mfaSetupData.value.secret) return
-  try {
-    await navigator.clipboard.writeText(mfaSetupData.value.secret)
-    storeSettings.setStatusMessage('Secret copiado al portapapeles.')
-  } catch {
-    storeSettings.setStatusMessage('No se pudo copiar el secret.')
-  }
-}
 
 const handleFirstNameValue = (value: string) => {
   profile.value.firstName = value
@@ -135,22 +131,22 @@ const handlePhoneNumberValue = (value: string) => {
 
 const handleSaveProfile = async () => {
   if (!validateProfile()) {
-    storeSettings.setStatusMessage('Corrige los campos marcados para continuar.')
+    storeSettings.setStatusMessage(messages.settings.profileValidationError)
     return
   }
 
   if (!user.value?.id) {
-    storeSettings.setStatusMessage('No se encontro usuario autenticado para actualizar.')
+    storeSettings.setStatusMessage(messages.settings.profileUserNotFound)
     return
   }
 
   const payload = mapperUpdateProfilePayload(user.value.id, profile.value)
   const success = await storeAuth.updateProfile(payload)
   if (success) {
-    storeSettings.setStatusMessage('Informacion de cuenta actualizada correctamente.')
+    storeSettings.setStatusMessage(messages.settings.profileUpdateSuccess)
     return
   }
-  storeSettings.setStatusMessage(storeAuth.errorMessage || 'No se pudo actualizar la informacion de la cuenta.')
+  storeSettings.setStatusMessage(storeAuth.errorMessage || messages.settings.profileUpdateError)
 }
 
 const clearAvatarPreview = () => {
@@ -171,7 +167,7 @@ const handleAvatarFileChange = (event: Event) => {
   }
 
   if (!file.type.startsWith('image/')) {
-    avatarError.value = 'Selecciona un archivo de imagen valido.'
+    avatarError.value = messages.settings.avatarInvalidFile
     avatarForm.value.file = null
     event.target.value = ''
     clearAvatarPreview()
@@ -189,12 +185,12 @@ const handleOpenAvatarPicker = () => {
 
 const handleSaveAvatar = async () => {
   if (!user.value?.id) {
-    storeSettings.setStatusMessage('No se encontro usuario autenticado para actualizar avatar.')
+    storeSettings.setStatusMessage(messages.settings.avatarUserNotFound)
     return
   }
 
   if (!avatarForm.value.file) {
-    avatarError.value = 'Selecciona una imagen antes de continuar.'
+    avatarError.value = messages.settings.avatarSelectImage
     return
   }
 
@@ -203,11 +199,11 @@ const handleSaveAvatar = async () => {
     avatarError.value = null
     avatarForm.value.file = null
     clearAvatarPreview()
-    storeSettings.setStatusMessage('Avatar actualizado correctamente.')
+    storeSettings.setStatusMessage(messages.settings.avatarUpdateSuccess)
     return
   }
 
-  storeSettings.setStatusMessage(storeAuth.errorMessage || 'No se pudo actualizar el avatar.')
+  storeSettings.setStatusMessage(storeAuth.errorMessage || messages.settings.avatarUpdateError)
 }
 
 onBeforeUnmount(() => {
@@ -222,7 +218,7 @@ const handleInitialProfile = () => {
 onMounted(async () => {
   await storeAuth.getCurrentUser()
   handleInitialProfile()
-  await storeSettings.loadMfaAndSessions(currentUsername.value, currentEmail.value)
+  await storeSettings.loadMfaAndSessions(currentEmail.value)
   await buildMfaQrImage()
 })
 </script>
@@ -460,12 +456,6 @@ onMounted(async () => {
             Sesiones activas: {{ activeSessions }}
           </p>
         </div>
-        <ButtonComponent
-          variant="outline"
-          :disabled="loadingSessions || loadingLogoutDevice"
-          label="Desloguear otros dispositivos"
-          :on-click="handleLogoutAllOtherDevices"
-        />
       </div>
 
       <div class="mt-4 space-y-3">

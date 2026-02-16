@@ -9,6 +9,7 @@ export {
   convertIdToNumber,
 } from './useNotificationUtils'
 export {
+  formatLastSeen,
   findDeviceById,
   removeDeviceById,
   keepCurrentDevices,

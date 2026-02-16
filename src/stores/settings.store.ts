@@ -6,9 +6,12 @@ import {
   useDeviceId,
   findDeviceById,
   removeDeviceById,
-  keepCurrentDevices,
 } from '@/utils'
-import type { SettingDeviceSession, SettingMfaSetupData, SettingMfaState } from '@/interfaces'
+import type {
+  SettingDeviceSessionRaw,
+  SettingMfaSetupDataRaw,
+  SettingMfaStatusResponse,
+} from '@/interfaces'
 import {
   initialSettingsDevices,
   initialSettingsMfaSetupData,
@@ -87,7 +90,7 @@ export const useStoreSettings = defineStore('settings', () => {
     try {
       loadingMfaStatus.value = true
       errorBack.value = null
-      const { data } = await axiosInstance.get<SettingMfaState>(`${AUTH_BASE_PATH}/mfa/status/${encodeURIComponent(email)}`)
+      const { data } = await axiosInstance.get<SettingMfaStatusResponse>(`${AUTH_BASE_PATH}/mfa/status/${encodeURIComponent(email)}`)
       mfaState.value = mapperMfaStateFromResponse(data)
     } catch (error) {
       errorBack.value = error
@@ -103,7 +106,7 @@ export const useStoreSettings = defineStore('settings', () => {
     try {
       loadingMfaAction.value = true
       errorBack.value = null
-      const { data } = await axiosInstance.post<SettingMfaSetupData>(
+      const { data } = await axiosInstance.post<SettingMfaSetupDataRaw>(
         `${AUTH_BASE_PATH}/mfa/setup`,
         { username },
         {
@@ -203,17 +206,12 @@ export const useStoreSettings = defineStore('settings', () => {
     }
   }
 
-  const getSessions = async (username: string) => {
-    if (!username) return
+  const getSessions = async () => {
     try {
       loadingSessions.value = true
       errorBack.value = null
-      const { data } = await axiosInstance.get<SettingDeviceSession[]>(`${AUTH_BASE_PATH}/sessions`, {
-        headers: {
-          'X-Username': username,
-        },
-      })
-      devices.value = mapperSettingSessionsFromResponse(data)
+      const { data } = await axiosInstance.get<SettingDeviceSessionRaw[]>(`${AUTH_BASE_PATH}/sessions`)
+      devices.value = mapperSettingSessionsFromResponse(data, getDeviceId())
     } catch (error) {
       errorBack.value = error
       setStatusMessage(messages.settings.sessionsError)
@@ -222,18 +220,13 @@ export const useStoreSettings = defineStore('settings', () => {
     }
   }
 
-  const mutationLogoutDevice = async (username: string, deviceId: string) => {
-    if (!username || !deviceId) return false
+  const mutationLogoutDevice = async (sessionId: number) => {
+    if (!Number.isInteger(sessionId) || sessionId <= 0) return false
     try {
       loadingLogoutDevice.value = true
       errorBack.value = null
-      await axiosInstance.post(`${AUTH_BASE_PATH}/logout-device`, null, {
-        headers: {
-          'X-Username': username,
-          'X-Device-Id': deviceId,
-        },
-      })
-      devices.value = removeDeviceById(devices.value, deviceId)
+      await axiosInstance.post(`${AUTH_BASE_PATH}/logout-device`, { sessionId })
+      devices.value = removeDeviceById(devices.value, String(sessionId))
       setStatusMessage(messages.settings.logoutDeviceSuccess)
       return true
     } catch (error) {
@@ -249,41 +242,36 @@ export const useStoreSettings = defineStore('settings', () => {
     }
   }
 
-  const loadMfaAndSessions = async (username: string, email: string) => {
-    if (!username || !email) return
+  const loadMfaAndSessions = async (email: string) => {
+    if (!email) return
     setMfaStatusEmail(email)
     await Promise.all([
       getMfaStatus(email),
-      getSessions(username),
+      getSessions(),
     ])
   }
-
-  // Handlers
-  const enableMfa = async (username: string) => mutationMfaSetup(username)
-
-  const disableMfa = async (username: string) => mutationMfaDisable(username)
-
-  const verifyMfa = async (username: string) => mutationMfaVerify(username)
-
-  const logoutDevice = async (username: string, id: string) => {
+  
+  const logoutDevice = async (id: string) => {
     const device = findDeviceById(devices.value, id)
     if (!device) return
     if (device.current) {
       setStatusMessage(messages.settings.logoutCurrentDeviceError)
       return
     }
-    await mutationLogoutDevice(username, id)
+    const sessionId = Number(id)
+    if (!Number.isInteger(sessionId) || sessionId <= 0) {
+      setStatusMessage(messages.settings.logoutDeviceError)
+      return
+    }
+    await mutationLogoutDevice(sessionId)
   }
 
-  const logoutAllOtherDevices = async (username: string) => {
-    if (!username) return
+  const logoutAllOtherDevices = async () => {
     if (otherSessions.value.length === 0) {
       setStatusMessage(messages.settings.noOtherDevices)
       return
     }
-    const ids = keepCurrentDevices(devices.value).map((item) => item.id)
-    const targets = devices.value.filter((item) => !ids.includes(item.id))
-    await Promise.all(targets.map((item) => mutationLogoutDevice(username, item.id)))
+    await Promise.all(otherSessions.value.map((item) => mutationLogoutDevice(Number(item.id))))
     setStatusMessage(messages.settings.logoutAllOtherSuccess)
   }
 
@@ -325,9 +313,6 @@ export const useStoreSettings = defineStore('settings', () => {
     mutationMfaDisable,
     mutationLogoutDevice,
     // Handlers
-    enableMfa,
-    disableMfa,
-    verifyMfa,
     logoutDevice,
     logoutAllOtherDevices,
   }

@@ -1,12 +1,17 @@
 import type {
   AuthUser,
   SettingDeviceSession,
+  SettingDeviceSessionRaw,
   SettingMfaSetupData,
+  SettingMfaSetupDataRaw,
+  SettingMfaStatusResponse,
   SettingMfaState,
   SettingUpdateProfileForm,
   SettingUpdateAvatarPayload,
   SettingUpdateProfilePayload,
 } from '@/interfaces'
+import messages from '@/messages/messages'
+import { formatLastSeen } from '@/utils'
 
 export function mapperUpdateProfilePayload(id: number, form: SettingUpdateProfileForm): SettingUpdateProfilePayload {
   return {
@@ -33,16 +38,16 @@ export function mapperSettingProfileForm(user: AuthUser): SettingUpdateProfileFo
   }
 }
 
-export function mapperMfaStateFromResponse(data: SettingMfaState): SettingMfaState {
+export function mapperMfaStateFromResponse(data: SettingMfaStatusResponse): SettingMfaState {
   return {
-    enabled: data.enabled ?? false,
+    enabled: data.status ?? false,
     verified: data.verified ?? false,
-    method: data.method || 'Authenticator App (TOTP)',
-    lastVerification: data.lastVerification || 'Sin verificacion reciente',
+    method: messages.settings.mfaDefaultMethod,
+    lastVerification: data.lastVerification || messages.settings.mfaNoRecentVerification,
   }
 }
 
-export function mapperMfaSetupDataFromResponse(data: SettingMfaSetupData): SettingMfaSetupData {
+export function mapperMfaSetupDataFromResponse(data: SettingMfaSetupDataRaw): SettingMfaSetupData {
   return {
     qrCodeUrl: data.qrCodeUrl || '',
     secret: data.secret || '',
@@ -50,6 +55,20 @@ export function mapperMfaSetupDataFromResponse(data: SettingMfaSetupData): Setti
   }
 }
 
-export function mapperSettingSessionsFromResponse(data: SettingDeviceSession[]): SettingDeviceSession[] {
-  return data.filter((item) => item.id)
+export function mapperSettingSessionsFromResponse(
+  data: SettingDeviceSessionRaw[],
+  currentDeviceId: string,
+): SettingDeviceSession[] {
+  return data
+    .map((item, index) => {
+      const resolvedId = String(item.id || '').trim()
+      return {
+        id: resolvedId,
+        name: item.userAgent?.trim() || `${messages.settings.sessionDefaultName} ${index + 1}`,
+        location: item.ipAddress?.trim() || messages.settings.sessionNoIp,
+        lastSeen: formatLastSeen(item.lastSeenAt || item.createdAt),
+        current: (item.deviceId || '').trim() === currentDeviceId,
+      }
+    })
+    .filter((item) => item.id.length > 0)
 }

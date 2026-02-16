@@ -1,4 +1,12 @@
 import type { SettingDeviceSession } from '@/interfaces'
+import messages from '@/messages/messages'
+
+export const formatLastSeen = (value?: string): string => {
+  if (!value) return messages.settings.sessionNoActivity
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString('es-CL')
+}
 
 export const findDeviceById = (
   devices: SettingDeviceSession[],
