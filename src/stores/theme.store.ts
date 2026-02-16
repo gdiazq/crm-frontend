@@ -4,16 +4,19 @@ import { ref } from 'vue'
 const THEME_KEY = 'crm-theme'
 
 export const useStoreTheme = defineStore('theme', () => {
+  // State
   const isDark = ref(true)
   const errorBack = ref<Error | null>(null)
   const isInitialized = ref(false)
 
+  // Handlers
   const applyThemeClass = (value: boolean) => {
     if (typeof document !== 'undefined') {
       document.documentElement.classList.toggle('dark', value)
     }
   }
 
+  // Setters
   const setTheme = (value: boolean) => {
     isDark.value = value
     applyThemeClass(value)
@@ -26,6 +29,7 @@ export const useStoreTheme = defineStore('theme', () => {
     setTheme(!isDark.value)
   }
 
+  // Actions
   const initTheme = () => {
     try {
       if (isInitialized.value) {
@@ -54,9 +58,12 @@ export const useStoreTheme = defineStore('theme', () => {
   }
 
   return {
+    // State
     isDark,
     errorBack,
+    // Actions
     initTheme,
+    // Setters
     setTheme,
     toggleTheme,
   }

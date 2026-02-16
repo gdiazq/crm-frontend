@@ -34,7 +34,7 @@ const submitForm = async () => {
     return
   }
 
-  const payload = mapperForgotPasswordPayload(form.value.email)
+  const payload = mapperForgotPasswordPayload(form.value)
   const success = await storeAuth.forgotPassword(payload)
   if (success) {
     storeAuth.setPendingVerifyEmail(payload.email)

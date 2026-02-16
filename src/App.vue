@@ -2,8 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { CookieConsentBanner } from '@/components'
-import PrivateDefaultLayout from '@/layouts/private/PrivateDefaultLayout.vue'
-import PublicDefaultLayout from '@/layouts/public/PublicDefaultLayout.vue'
+import { LAYOUT_PRIVATE } from '@/constants'
+import { LayoutPrivateDefault, LayoutPublicDefault } from '@/layouts'
 import { useStoreTheme } from '@/stores'
 
 const COOKIE_CONSENT_KEY = 'crm_cookie_consent'
@@ -12,10 +12,10 @@ const themeStore = useStoreTheme()
 const cookieConsentVisible = ref(false)
 
 const currentLayout = computed(() => {
-  if (route.meta.layout === 'LayoutPrivateDefault') {
-    return PrivateDefaultLayout
+  if (route.meta.layout === LAYOUT_PRIVATE) {
+    return LayoutPrivateDefault
   }
-  return PublicDefaultLayout
+  return LayoutPublicDefault
 })
 
 onMounted(() => {

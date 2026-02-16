@@ -6,7 +6,6 @@ import type {
   SettingTabOption,
   SettingUpdateAvatarForm,
   SettingUpdateProfileForm,
-  ValidationRule,
 } from '@/interfaces'
 
 export const initialUpdateProfileForm: SettingUpdateProfileForm = {
@@ -72,10 +71,3 @@ export const initialSettingsDevices: SettingDeviceSession[] = [
     current: false,
   },
 ]
-
-export const settingsUpdateProfileValidationRules: Record<string, ValidationRule> = {
-  firstName: { required: true, minLength: 2 },
-  lastName: { required: true, minLength: 2 },
-  email: { required: true, email: true },
-  phoneNumber: { required: true, pattern: /^\+?[0-9]{8,15}$/ },
-}

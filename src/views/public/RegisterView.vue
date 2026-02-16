@@ -4,7 +4,8 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, InputComponent, ThemeToggle } from '@/components'
 import { AUTH_ROUTE_HOME, AUTH_ROUTE_VERIFY_EMAIL } from '@/constants'
-import { initialRegisterForm, registerValidationRules } from '@/factories'
+import { initialRegisterForm } from '@/factories'
+import { registerValidationRules } from '@/rules'
 import { useFormValidation } from '@/composables'
 import { mapperRegisterPayload } from '@/mappers'
 import { useStoreAuth, useStoreTheme } from '@/stores'
@@ -79,13 +80,7 @@ const submitForm = async () => {
     return
   }
 
-  const payload = mapperRegisterPayload(
-    form.value.username,
-    form.value.email,
-    form.value.firstName,
-    form.value.lastName,
-    form.value.phoneNumber,
-  )
+  const payload = mapperRegisterPayload(form.value)
   const success = await storeAuth.register(payload)
   if (success) {
     storeAuth.setPendingVerifyEmail(payload.email)

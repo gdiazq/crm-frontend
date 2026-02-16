@@ -1,55 +1,25 @@
-import {
-  initialAlert,
-  initialCreatePasswordForm,
-  initialForgotPasswordForm,
-  initialLoginForm,
-  initialPasswordRequirements,
-  initialRegisterForm,
-  initialResendVerificationForm,
-  initialVerifyEmailForm,
-} from './auth.factory'
-import { initialPreLoginForm } from './pre-login.factory'
-import { initialLoginCredentialsForm } from './login-credentials.factory'
-import { initialDashboardExample } from './dashboard-example.factory'
-import {
-  initialCounterNotification,
-  initialErrorMessageNotification,
-  initialLoadingNotification,
-  initialNotifications,
-  initialStatusNotification,
-  initialTabNotification,
-} from './notification.factory'
-import {
-  initialSettingsDevices,
-  initialSettingsMfaState,
-  initialSettingsMfaSetupData,
-  initialSettingsStatusMessage,
-  initialSettingsTab,
-  initialUpdateAvatarForm,
-  initialUpdateProfileForm,
-  settingsMfaSetupSteps,
-  settingsTabs,
-  settingsUpdateProfileValidationRules,
-} from './setting.factory'
-import {
-  loginCredentialsValidationRules,
-  loginValidationRules,
-  preLoginValidationRules,
-  registerValidationRules,
-  verifyEmailValidationRules,
-} from './validation.factory'
-
+export { initialAlert } from './common/alerts.factory'
 export {
-  initialAlert,
+  initialCounterNotification,
+  initialErrorMessageNotification,
+  initialLoadingNotification,
+  initialNotifications,
+  initialStatusNotification,
+  initialTabNotification,
+} from './common/notification.factory'
+export {
   initialCreatePasswordForm,
   initialForgotPasswordForm,
   initialLoginForm,
-  initialPreLoginForm,
-  initialLoginCredentialsForm,
-  initialDashboardExample,
   initialPasswordRequirements,
   initialRegisterForm,
   initialResendVerificationForm,
+  initialVerifyEmailForm,
+} from './auth/auth.factory'
+export { initialPreLoginForm } from './auth/pre-login.factory'
+export { initialLoginCredentialsForm } from './auth/login-credentials.factory'
+export { initialDashboardExample } from './dashboard/dashboard-example.factory'
+export {
   initialSettingsDevices,
   initialSettingsMfaState,
   initialSettingsMfaSetupData,
@@ -57,19 +27,6 @@ export {
   initialSettingsTab,
   initialUpdateAvatarForm,
   initialUpdateProfileForm,
-  initialVerifyEmailForm,
-  initialCounterNotification,
-  initialNotifications,
-  initialTabNotification,
-  initialStatusNotification,
-  initialErrorMessageNotification,
-  initialLoadingNotification,
-  preLoginValidationRules,
-  loginCredentialsValidationRules,
-  loginValidationRules,
-  registerValidationRules,
   settingsMfaSetupSteps,
   settingsTabs,
-  settingsUpdateProfileValidationRules,
-  verifyEmailValidationRules,
-}
+} from './settings/setting.factory'

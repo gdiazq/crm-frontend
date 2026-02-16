@@ -8,7 +8,7 @@ import type {
   DashboardExampleTaskRaw,
 } from '@/interfaces'
 
-const formatCurrency = (value: number) => {
+function formatCurrency(value: number) {
   return new Intl.NumberFormat('es-CL', {
     style: 'currency',
     currency: 'CLP',
@@ -16,23 +16,23 @@ const formatCurrency = (value: number) => {
   }).format(value)
 }
 
-const formatNumber = (value: number) => {
+function formatNumber(value: number) {
   return new Intl.NumberFormat('es-CL').format(value)
 }
 
-const mapKpiValue = (item: DashboardExampleKpiRaw) => {
+function mapKpiValue(item: DashboardExampleKpiRaw) {
   if (item.unit === 'currency') return formatCurrency(item.value)
   if (item.unit === 'percent') return `${item.value}%`
   return formatNumber(item.value)
 }
 
-const mapVariationLabel = (variation: number) => {
+function mapVariationLabel(variation: number) {
   const absoluteValue = Math.abs(variation)
   const sign = variation >= 0 ? '+' : '-'
   return `${sign}${absoluteValue}% vs mes anterior`
 }
 
-const mapPipelineStage = (item: DashboardExamplePipelineStageRaw) => {
+function mapPipelineStage(item: DashboardExamplePipelineStageRaw) {
   return {
     id: item.id,
     label: item.label,
@@ -41,7 +41,7 @@ const mapPipelineStage = (item: DashboardExamplePipelineStageRaw) => {
   }
 }
 
-const mapTask = (item: DashboardExampleTaskRaw) => {
+function mapTask(item: DashboardExampleTaskRaw) {
   return {
     id: item.id,
     title: item.title,
@@ -50,7 +50,7 @@ const mapTask = (item: DashboardExampleTaskRaw) => {
   }
 }
 
-const mapClient = (item: DashboardExampleClientRaw) => {
+function mapClient(item: DashboardExampleClientRaw) {
   return {
     id: item.id,
     name: item.name,
@@ -60,7 +60,7 @@ const mapClient = (item: DashboardExampleClientRaw) => {
   }
 }
 
-const mapActivity = (item: DashboardExampleActivityRaw) => {
+function mapActivity(item: DashboardExampleActivityRaw) {
   return {
     id: item.id,
     text: item.text,
@@ -68,7 +68,7 @@ const mapActivity = (item: DashboardExampleActivityRaw) => {
   }
 }
 
-export const mapperDashboardExample = (result: DashboardExampleRaw): DashboardExample => {
+export function mapperDashboardExample(result: DashboardExampleRaw): DashboardExample {
   return {
     seller: result.seller,
     periodLabel: result.periodLabel,

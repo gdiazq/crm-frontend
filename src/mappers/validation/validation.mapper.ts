@@ -2,7 +2,7 @@ import type { ValidationRule } from '@/interfaces'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-export const mapperValidateField = (value: string, rule: ValidationRule): string | null => {
+export function mapperValidateField(value: string, rule: ValidationRule): string | null {
   const normalized = value || ''
 
   if (rule.required && !normalized.trim()) return 'Campo obligatorio'
@@ -14,10 +14,10 @@ export const mapperValidateField = (value: string, rule: ValidationRule): string
   return null
 }
 
-export const mapperIsFormValid = (
+export function mapperIsFormValid(
   form: Record<string, string>,
   rules: Record<string, ValidationRule>,
-): boolean => {
+): boolean {
   return Object.keys(rules).every((key) => {
     const rule = rules[key]
     if (!rule) return true

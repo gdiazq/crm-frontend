@@ -2,7 +2,12 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import axios from 'axios'
 import { axiosInstance } from '@/config'
-import { useDeviceId } from '@/composables'
+import {
+  useDeviceId,
+  findDeviceById,
+  removeDeviceById,
+  keepCurrentDevices,
+} from '@/utils'
 import type { SettingDeviceSession, SettingMfaSetupData, SettingMfaState } from '@/interfaces'
 import {
   initialSettingsDevices,
@@ -14,19 +19,18 @@ import {
   settingsTabs,
 } from '@/factories'
 import {
-  mapperFindSettingDeviceById,
-  mapperKeepCurrentSettingDevices,
   mapperMfaSetupDataFromResponse,
   mapperMfaStateFromResponse,
-  mapperRemoveSettingDeviceById,
   mapperSettingSessionsFromResponse,
 } from '@/mappers'
+import messages from '@/messages/messages'
 
 const AUTH_BASE_PATH = '/auth'
 
 export const useStoreSettings = defineStore('settings', () => {
   const { getDeviceId } = useDeviceId()
-  // Data
+
+  // State
   const mfaState = ref({ ...initialSettingsMfaState })
   const mfaSetupData = ref({ ...initialSettingsMfaSetupData })
   const mfaVerificationCode = ref('')
@@ -43,7 +47,7 @@ export const useStoreSettings = defineStore('settings', () => {
   const loadingMfaAction = ref(false)
   const loadingLogoutDevice = ref(false)
 
-  // Error
+  // Messages
   const errorBack = ref<unknown | null>(null)
 
   // Getters
@@ -56,7 +60,7 @@ export const useStoreSettings = defineStore('settings', () => {
       : 'text-rose-600 dark:text-rose-400'
   ))
 
-  // Actions
+  // Setters
   const setStatusMessage = (message: string) => {
     statusMessage.value = message
   }
@@ -77,6 +81,7 @@ export const useStoreSettings = defineStore('settings', () => {
     mfaVerificationCode.value = ''
   }
 
+  // Actions
   const getMfaStatus = async (email: string) => {
     if (!email) return
     try {
@@ -86,12 +91,13 @@ export const useStoreSettings = defineStore('settings', () => {
       mfaState.value = mapperMfaStateFromResponse(data)
     } catch (error) {
       errorBack.value = error
-      setStatusMessage('No se pudo obtener el estado de MFA.')
+      setStatusMessage(messages.settings.mfaStatusError)
     } finally {
       loadingMfaStatus.value = false
     }
   }
 
+  /* === Mutations === */
   const mutationMfaSetup = async (username: string) => {
     if (!username) return false
     try {
@@ -110,14 +116,14 @@ export const useStoreSettings = defineStore('settings', () => {
       if (mfaStatusEmail.value) {
         await getMfaStatus(mfaStatusEmail.value)
       }
-      setStatusMessage('Setup MFA iniciado. Escanea el QR y verifica con un codigo de 6 digitos.')
+      setStatusMessage(messages.settings.mfaSetupStarted)
       return true
     } catch (error) {
       errorBack.value = error
       if (axios.isAxiosError(error)) {
-        setStatusMessage(error.response?.data?.message || 'No se pudo iniciar el setup MFA.')
+        setStatusMessage(error.response?.data?.message || messages.settings.mfaSetupError)
       } else {
-        setStatusMessage('No se pudo iniciar el setup MFA.')
+        setStatusMessage(messages.settings.mfaSetupError)
       }
       return false
     } finally {
@@ -128,7 +134,7 @@ export const useStoreSettings = defineStore('settings', () => {
   const mutationMfaVerify = async (username: string) => {
     if (!username) return false
     if (mfaVerificationCode.value.trim().length !== 6) {
-      setStatusMessage('Ingresa un codigo MFA valido de 6 digitos.')
+      setStatusMessage(messages.settings.mfaInvalidCode)
       return false
     }
     try {
@@ -150,14 +156,14 @@ export const useStoreSettings = defineStore('settings', () => {
       if (mfaStatusEmail.value) {
         await getMfaStatus(mfaStatusEmail.value)
       }
-      setStatusMessage('MFA verificado correctamente.')
+      setStatusMessage(messages.settings.mfaVerifySuccess)
       return true
     } catch (error) {
       errorBack.value = error
       if (axios.isAxiosError(error)) {
-        setStatusMessage(error.response?.data?.message || 'No se pudo verificar el codigo MFA.')
+        setStatusMessage(error.response?.data?.message || messages.settings.mfaVerifyError)
       } else {
-        setStatusMessage('No se pudo verificar el codigo MFA.')
+        setStatusMessage(messages.settings.mfaVerifyError)
       }
       return false
     } finally {
@@ -182,14 +188,14 @@ export const useStoreSettings = defineStore('settings', () => {
       if (mfaStatusEmail.value) {
         await getMfaStatus(mfaStatusEmail.value)
       }
-      setStatusMessage('MFA deshabilitado correctamente.')
+      setStatusMessage(messages.settings.mfaDisableSuccess)
       return true
     } catch (error) {
       errorBack.value = error
       if (axios.isAxiosError(error)) {
-        setStatusMessage(error.response?.data?.message || 'No se pudo deshabilitar MFA.')
+        setStatusMessage(error.response?.data?.message || messages.settings.mfaDisableError)
       } else {
-        setStatusMessage('No se pudo deshabilitar MFA.')
+        setStatusMessage(messages.settings.mfaDisableError)
       }
       return false
     } finally {
@@ -210,7 +216,7 @@ export const useStoreSettings = defineStore('settings', () => {
       devices.value = mapperSettingSessionsFromResponse(data)
     } catch (error) {
       errorBack.value = error
-      setStatusMessage('No se pudieron obtener las sesiones del usuario.')
+      setStatusMessage(messages.settings.sessionsError)
     } finally {
       loadingSessions.value = false
     }
@@ -227,15 +233,15 @@ export const useStoreSettings = defineStore('settings', () => {
           'X-Device-Id': deviceId,
         },
       })
-      devices.value = mapperRemoveSettingDeviceById(devices.value, deviceId)
-      setStatusMessage('Dispositivo deslogueado correctamente.')
+      devices.value = removeDeviceById(devices.value, deviceId)
+      setStatusMessage(messages.settings.logoutDeviceSuccess)
       return true
     } catch (error) {
       errorBack.value = error
       if (axios.isAxiosError(error)) {
-        setStatusMessage(error.response?.data?.message || 'No se pudo desloguear el dispositivo.')
+        setStatusMessage(error.response?.data?.message || messages.settings.logoutDeviceError)
       } else {
-        setStatusMessage('No se pudo desloguear el dispositivo.')
+        setStatusMessage(messages.settings.logoutDeviceError)
       }
       return false
     } finally {
@@ -252,7 +258,7 @@ export const useStoreSettings = defineStore('settings', () => {
     ])
   }
 
-  // Handlers for current view
+  // Handlers
   const enableMfa = async (username: string) => mutationMfaSetup(username)
 
   const disableMfa = async (username: string) => mutationMfaDisable(username)
@@ -260,10 +266,10 @@ export const useStoreSettings = defineStore('settings', () => {
   const verifyMfa = async (username: string) => mutationMfaVerify(username)
 
   const logoutDevice = async (username: string, id: string) => {
-    const device = mapperFindSettingDeviceById(devices.value, id)
+    const device = findDeviceById(devices.value, id)
     if (!device) return
     if (device.current) {
-      setStatusMessage('No puedes desloguear la sesion actual desde este dispositivo.')
+      setStatusMessage(messages.settings.logoutCurrentDeviceError)
       return
     }
     await mutationLogoutDevice(username, id)
@@ -272,16 +278,17 @@ export const useStoreSettings = defineStore('settings', () => {
   const logoutAllOtherDevices = async (username: string) => {
     if (!username) return
     if (otherSessions.value.length === 0) {
-      setStatusMessage('No hay otros dispositivos activos.')
+      setStatusMessage(messages.settings.noOtherDevices)
       return
     }
-    const ids = mapperKeepCurrentSettingDevices(devices.value).map((item) => item.id)
+    const ids = keepCurrentDevices(devices.value).map((item) => item.id)
     const targets = devices.value.filter((item) => !ids.includes(item.id))
     await Promise.all(targets.map((item) => mutationLogoutDevice(username, item.id)))
-    setStatusMessage('Todas las otras sesiones fueron cerradas.')
+    setStatusMessage(messages.settings.logoutAllOtherSuccess)
   }
 
   return {
+    // State
     mfaState,
     mfaSetupData,
     mfaVerificationCode,
@@ -290,27 +297,34 @@ export const useStoreSettings = defineStore('settings', () => {
     mfaSetupSteps,
     tabs,
     activeTab,
+    // Loading
     loadingMfaStatus,
     loadingSessions,
     loadingMfaAction,
     loadingLogoutDevice,
+    // Messages
     errorBack,
+    // Getters
     activeSessions,
     otherSessions,
     mfaStatusLabel,
     mfaStatusClass,
+    // Setters
     setStatusMessage,
     setActiveTab,
     setMfaVerificationCode,
     setMfaStatusEmail,
     clearMfaVerificationCode,
+    // Actions
     getMfaStatus,
+    getSessions,
+    loadMfaAndSessions,
+    // Mutations
     mutationMfaSetup,
     mutationMfaVerify,
     mutationMfaDisable,
-    getSessions,
     mutationLogoutDevice,
-    loadMfaAndSessions,
+    // Handlers
     enableMfa,
     disableMfa,
     verifyMfa,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import DrodownComponente from '@/components/common/DrodownComponente.vue'
+import DrodownComponente from '@/components/layout/DrodownComponente.vue'
 
 const props = defineProps<{
   unreadCount: number

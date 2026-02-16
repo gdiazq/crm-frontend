@@ -1,5 +1,4 @@
 import type {
-  AlertsCore,
   AuthCreatePasswordForm,
   AuthForgotPasswordForm,
   AuthLoginForm,
@@ -8,12 +7,6 @@ import type {
   AuthVerifyEmailForm,
   PasswordRequirement,
 } from '@/interfaces'
-
-export const initialAlert: AlertsCore = {
-  icon: 'fa-solid fa-circle-info',
-  variant: 'info',
-  message: '',
-}
 
 export const initialCreatePasswordForm: AuthCreatePasswordForm = {
   password: '',

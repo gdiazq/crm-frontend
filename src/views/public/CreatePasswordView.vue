@@ -110,7 +110,7 @@ const submitForm = async () => {
     return
   }
 
-  const payload = mapperCreatePasswordPayload(pendingPasswordToken.value || '', form.value.password)
+  const payload = mapperCreatePasswordPayload(pendingPasswordToken.value || '', form.value)
   const success = await storeAuth.createPassword(payload)
   if (success) {
     clearTimers()

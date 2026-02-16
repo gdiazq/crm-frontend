@@ -1,13 +1,13 @@
-import ThemeToggle from './common/ThemeToggle.vue'
-import NotificationPanel from './common/NotificationPanel.vue'
-import CookieConsentBanner from './common/CookieConsentBanner.vue'
-import ResendVerificationModal from './common/ResendVerificationModal.vue'
-import NavbarComponent from './common/NavbarComponent.vue'
-import DrodownComponente from './common/DrodownComponente.vue'
-import TabsComponent from './common/TabsComponent.vue'
+import ThemeToggle from './layout/ThemeToggle.vue'
+import NotificationPanel from './layout/NotificationPanel.vue'
+import CookieConsentBanner from './layout/CookieConsentBanner.vue'
+import ResendVerificationModal from './dialog/ResendVerificationModal.vue'
+import NavbarComponent from './layout/NavbarComponent.vue'
+import DrodownComponente from './layout/DrodownComponente.vue'
+import TabsComponent from './layout/TabsComponent.vue'
+import FooterComponent from './layout/FooterComponent.vue'
 import SellerDashboardMainComponent from './dashboard/SellerDashboardMainComponent.vue'
 import SellerDashboardSideComponent from './dashboard/SellerDashboardSideComponent.vue'
-import FooterComponent from './frontpage/FooterComponent.vue'
 import FeatureGrid from './frontpage/FeatureGrid.vue'
 import HeroContent from './frontpage/HeroContent.vue'
 import HeroHeader from './frontpage/HeroHeader.vue'
@@ -26,9 +26,9 @@ export {
   NavbarComponent,
   DrodownComponente,
   TabsComponent,
+  FooterComponent,
   SellerDashboardMainComponent,
   SellerDashboardSideComponent,
-  FooterComponent,
   FeatureGrid,
   HeroContent,
   HeroHeader,

@@ -2,9 +2,10 @@ import { defineStore } from 'pinia'
 import { reactive, ref } from 'vue'
 import axios from 'axios'
 import { axiosInstance } from '@/config'
-import { useAuthSessionStorage, useDeviceId } from '@/composables'
+import { useAuthSessionStorage, useDeviceId } from '@/utils'
 import { initialAlert } from '@/factories'
 import { mapperUpdateAvatarFormData } from '@/mappers'
+import messages from '@/messages/messages'
 import type {
   AlertsCore,
   AuthCheckEmailResponse,
@@ -27,14 +28,16 @@ type PermissionType = 'canRead' | 'canCreate' | 'canUpdate' | 'canDelete'
 export const useStoreAuth = defineStore('auth', () => {
   const authSessionStorage = useAuthSessionStorage()
   const { getDeviceId } = useDeviceId()
+
+  // State
   const user = ref<AuthUser | null>(null)
   const permissions = ref<ModulePermission[]>([])
-
   const sidebar = reactive({
     toggleMobile: false,
     toggleCollapse: false,
   })
 
+  // Loading
   const loginSubmitting = ref(false)
   const registerSubmitting = ref(false)
   const forgotPasswordSubmitting = ref(false)
@@ -44,13 +47,17 @@ export const useStoreAuth = defineStore('auth', () => {
   const checkEmailSubmitting = ref(false)
   const updateProfileSubmitting = ref(false)
   const updateAvatarSubmitting = ref(false)
+  const loadingUser = ref(false)
+
+  // Messages
   const loginError = ref(false)
   const mfaRequired = ref(false)
   const messageAlert = ref<AlertsCore>({ ...initialAlert })
   const successMessage = ref<string | null>(null)
   const errorMessage = ref<string | null>(null)
   const errorBack = ref<unknown | null>(null)
-  const loadingUser = ref(false)
+
+  // Session
   let currentUserRequest: Promise<void> | null = null
   const pendingVerifyEmail = ref<string | null>(authSessionStorage.getPendingVerifyEmail())
   const pendingVerifyPhone = ref<string | null>(authSessionStorage.getPendingVerifyPhone())
@@ -59,6 +66,7 @@ export const useStoreAuth = defineStore('auth', () => {
   const pendingPasswordTokenIssuedAt = ref<number | null>(authSessionStorage.getPendingPasswordTokenIssuedAt())
   const emailAvailable = ref<boolean | null>(null)
 
+  // Actions
   const login = async (credentials: AuthLoginPayload) => {
     try {
       loginSubmitting.value = true
@@ -88,12 +96,12 @@ export const useStoreAuth = defineStore('auth', () => {
         // Login data is sufficient to proceed
       }
 
-      successMessage.value = 'Inicio de sesion exitoso.'
+      successMessage.value = messages.auth.loginSuccess
       return true
     } catch (error) {
       loginError.value = true
       errorBack.value = error
-      let message = 'No se pudo iniciar sesion. Intenta nuevamente.'
+      let message = messages.auth.loginErrorDefault
       let alertVariant: AlertsCore['variant'] = 'error'
       let alertIcon = 'fa-solid fa-triangle-exclamation'
 
@@ -112,18 +120,18 @@ export const useStoreAuth = defineStore('auth', () => {
           loginError.value = false
           alertVariant = 'info'
           alertIcon = 'fa-solid fa-shield-halved'
-          message = 'Ingresa tu codigo MFA de 6 digitos para continuar.'
+          message = messages.auth.loginMfaPrompt
         }
 
-        if (status === 400) message = 'Datos invalidos. Verifica correo y contraseña.'
+        if (status === 400) message = messages.auth.loginInvalidData
         if (status === 401) {
-          if (mfaRequired.value && credentials.totpCode) message = 'Codigo MFA invalido.'
+          if (mfaRequired.value && credentials.totpCode) message = messages.auth.loginInvalidMfa
           else {
             mfaRequired.value = false
-            message = 'Credenciales invalidas.'
+            message = messages.auth.loginInvalidCredentials
           }
         }
-        if (status === 500 || status === 503) message = 'Servicio no disponible temporalmente.'
+        if (status === 500 || status === 503) message = messages.auth.loginServiceUnavailable
         if (
           typeof backendMessage === 'string' &&
           backendMessage.length > 0 &&
@@ -165,16 +173,16 @@ export const useStoreAuth = defineStore('auth', () => {
       pendingVerifyPhone.value = payload.phoneNumber
       authSessionStorage.setPendingVerifyEmail(payload.email)
       authSessionStorage.setPendingVerifyPhone(payload.phoneNumber)
-      successMessage.value = 'Registro exitoso. Revisa tu correo para verificar tu cuenta.'
+      successMessage.value = messages.auth.registerSuccess
       return true
     } catch (error) {
       errorBack.value = error
-      let message = 'No se pudo completar el registro.'
+      let message = messages.auth.registerErrorDefault
 
       if (axios.isAxiosError(error)) {
         const status = error.response?.status
-        if (status === 409) message = 'El correo ya esta registrado.'
-        if (status === 400) message = 'Datos de registro invalidos.'
+        if (status === 409) message = messages.auth.registerEmailTaken
+        if (status === 400) message = messages.auth.registerInvalidData
       }
 
       messageAlert.value = {
@@ -224,16 +232,16 @@ export const useStoreAuth = defineStore('auth', () => {
       pendingVerifyPhone.value = null
       authSessionStorage.clearPendingVerifyEmail()
       authSessionStorage.clearPendingVerifyPhone()
-      successMessage.value = 'Correo verificado correctamente.'
+      successMessage.value = messages.auth.verifyEmailSuccess
       return data.token
     } catch (error) {
       errorBack.value = error
-      let message = 'No se pudo verificar el correo.'
+      let message = messages.auth.verifyEmailErrorDefault
 
       if (axios.isAxiosError(error)) {
         const status = error.response?.status
-        if (status === 400) message = 'Codigo invalido o expirado.'
-        if (status === 404) message = 'No se encontro una cuenta para ese correo.'
+        if (status === 400) message = messages.auth.verifyEmailInvalidCode
+        if (status === 404) message = messages.auth.verifyEmailNotFound
       }
 
       messageAlert.value = {
@@ -258,16 +266,16 @@ export const useStoreAuth = defineStore('auth', () => {
       await axiosInstance.post('/auth/forgot-password', payload)
       pendingRecoveryEmail.value = payload.email
       authSessionStorage.setPendingRecoveryEmail(payload.email)
-      successMessage.value = 'Te enviamos un codigo de recuperacion al correo.'
+      successMessage.value = messages.auth.forgotPasswordSuccess
       return true
     } catch (error) {
       errorBack.value = error
-      let message = 'No se pudo iniciar la recuperacion de contraseña.'
+      let message = messages.auth.forgotPasswordErrorDefault
 
       if (axios.isAxiosError(error)) {
         const status = error.response?.status
-        if (status === 400) message = 'Correo invalido.'
-        if (status === 404) message = 'No existe una cuenta con ese correo.'
+        if (status === 400) message = messages.auth.forgotPasswordInvalidEmail
+        if (status === 404) message = messages.auth.forgotPasswordNotFound
       }
 
       messageAlert.value = {
@@ -289,16 +297,16 @@ export const useStoreAuth = defineStore('auth', () => {
       successMessage.value = null
 
       await axiosInstance.post('/auth/resend-verification', payload)
-      successMessage.value = 'Codigo reenviado correctamente. Revisa tu correo.'
+      successMessage.value = messages.auth.resendSuccess
       return true
     } catch (error) {
       errorBack.value = error
-      let message = 'No se pudo reenviar el codigo.'
+      let message = messages.auth.resendErrorDefault
 
       if (axios.isAxiosError(error)) {
         const status = error.response?.status
-        if (status === 400) message = 'Correo invalido para reenviar el codigo.'
-        if (status === 404) message = 'No se encontro una cuenta para ese correo.'
+        if (status === 400) message = messages.auth.resendInvalidEmail
+        if (status === 404) message = messages.auth.resendNotFound
       }
 
       errorMessage.value = message
@@ -319,18 +327,18 @@ export const useStoreAuth = defineStore('auth', () => {
       pendingPasswordToken.value = null
       pendingPasswordTokenIssuedAt.value = null
       authSessionStorage.clearPendingPasswordToken()
-      successMessage.value = 'Contraseña creada correctamente. Ya puedes iniciar sesion.'
+      successMessage.value = messages.auth.createPasswordSuccess
       return true
     } catch (error) {
       errorBack.value = error
-      let message = 'No se pudo crear la contraseña.'
+      let message = messages.auth.createPasswordErrorDefault
 
       if (axios.isAxiosError(error)) {
         const status = error.response?.status
         if (status === 400) {
-          message = 'La contraseña no cumple los requisitos o el token es invalido.'
+          message = messages.auth.createPasswordInvalid
         }
-        if (status === 404) message = 'No se encontro el proceso de creacion de contraseña.'
+        if (status === 404) message = messages.auth.createPasswordNotFound
       }
 
       messageAlert.value = {
@@ -345,6 +353,7 @@ export const useStoreAuth = defineStore('auth', () => {
     }
   }
 
+  /* === Mutations === */
   const updateProfile = async (payload: SettingUpdateProfilePayload) => {
     try {
       updateProfileSubmitting.value = true
@@ -362,16 +371,16 @@ export const useStoreAuth = defineStore('auth', () => {
         }
       }
 
-      successMessage.value = 'Informacion de cuenta actualizada correctamente.'
+      successMessage.value = messages.auth.updateProfileSuccess
       return true
     } catch (error) {
       errorBack.value = error
-      let message = 'No se pudo actualizar la informacion de cuenta.'
+      let message = messages.auth.updateProfileErrorDefault
 
       if (axios.isAxiosError(error)) {
         const status = error.response?.status
-        if (status === 400) message = 'Datos invalidos para actualizar el perfil.'
-        if (status === 404) message = 'No se encontro el usuario a actualizar.'
+        if (status === 400) message = messages.auth.updateProfileInvalidData
+        if (status === 404) message = messages.auth.updateProfileNotFound
       }
 
       errorMessage.value = message
@@ -395,16 +404,16 @@ export const useStoreAuth = defineStore('auth', () => {
 
       await getCurrentUser()
 
-      successMessage.value = 'Avatar actualizado correctamente.'
+      successMessage.value = messages.auth.updateAvatarSuccess
       return true
     } catch (error) {
       errorBack.value = error
-      let message = 'No se pudo actualizar el avatar.'
+      let message = messages.auth.updateAvatarErrorDefault
 
       if (axios.isAxiosError(error)) {
         const status = error.response?.status
-        if (status === 400) message = 'El archivo de avatar es invalido.'
-        if (status === 404) message = 'No se encontro el usuario para actualizar avatar.'
+        if (status === 400) message = messages.auth.updateAvatarInvalidFile
+        if (status === 404) message = messages.auth.updateAvatarNotFound
       }
 
       errorMessage.value = message
@@ -459,6 +468,7 @@ export const useStoreAuth = defineStore('auth', () => {
     reset()
   }
 
+  // Setters
   const setPendingVerifyEmail = (email: string) => {
     pendingVerifyEmail.value = email
     authSessionStorage.setPendingVerifyEmail(email)
@@ -490,6 +500,7 @@ export const useStoreAuth = defineStore('auth', () => {
     mfaRequired.value = false
   }
 
+  // Handlers
   const handleSidebarCollapse = () => {
     sidebar.toggleCollapse = !sidebar.toggleCollapse
   }
@@ -505,9 +516,11 @@ export const useStoreAuth = defineStore('auth', () => {
   }
 
   return {
+    // State
     user,
     permissions,
     sidebar,
+    // Loading
     loginSubmitting,
     registerSubmitting,
     forgotPasswordSubmitting,
@@ -517,19 +530,22 @@ export const useStoreAuth = defineStore('auth', () => {
     checkEmailSubmitting,
     updateProfileSubmitting,
     updateAvatarSubmitting,
+    loadingUser,
+    // Messages
     loginError,
     mfaRequired,
     messageAlert,
     successMessage,
     errorMessage,
     errorBack,
-    loadingUser,
+    // Session
     pendingVerifyEmail,
     pendingVerifyPhone,
     pendingRecoveryEmail,
     pendingPasswordToken,
     pendingPasswordTokenIssuedAt,
     emailAvailable,
+    // Actions
     login,
     register,
     forgotPassword,
@@ -537,17 +553,20 @@ export const useStoreAuth = defineStore('auth', () => {
     verifyEmail,
     resendVerification,
     createPassword,
-    updateProfile,
-    updateAvatar,
     getCurrentUser,
     reset,
     logout,
+    // Mutations
+    updateProfile,
+    updateAvatar,
+    // Setters
     setPendingVerifyEmail,
     setPendingVerifyPhone,
     setPendingRecoveryEmail,
     setPendingPasswordToken,
     clearPendingPasswordToken,
     clearMfaRequired,
+    // Handlers
     handleSidebarCollapse,
     handleSidebarMobile,
     hasPermission,

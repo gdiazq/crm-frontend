@@ -3,17 +3,22 @@ import { ref } from 'vue'
 import axios from 'axios'
 import { axiosInstance } from '@/config'
 import { mapperPreLoginMfaRequired } from '@/mappers'
+import messages from '@/messages/messages'
 import type { AuthPreLoginResponse } from '@/interfaces'
 
 const PRE_LOGIN_EMAIL_KEY = 'preLoginEmail'
 const PRE_LOGIN_MFA_REQUIRED_KEY = 'preLoginMfaRequired'
 
 export const useStorePreLogin = defineStore('preLogin', () => {
+  // State
   const preLoginSubmitting = ref(false)
   const loginError = ref(false)
   const mfaRequired = ref(false)
+
+  // Messages
   const errorMessage = ref<string>('')
 
+  // Setters
   const setPreLoginSession = (email: string, requiresMfa: boolean) => {
     sessionStorage.setItem(PRE_LOGIN_EMAIL_KEY, email)
     sessionStorage.setItem(PRE_LOGIN_MFA_REQUIRED_KEY, String(requiresMfa))
@@ -37,6 +42,7 @@ export const useStorePreLogin = defineStore('preLogin', () => {
     errorMessage.value = ''
   }
 
+  // Actions
   const preLogin = async (email: string) => {
     try {
       preLoginSubmitting.value = true
@@ -53,11 +59,11 @@ export const useStorePreLogin = defineStore('preLogin', () => {
     } catch (error) {
       loginError.value = true
       mfaRequired.value = false
-      errorMessage.value = 'Correo invalido o no registrado.'
+      errorMessage.value = messages.auth.preLoginInvalidEmail
 
       if (axios.isAxiosError(error)) {
         const status = error.response?.status
-        if (status === 400) errorMessage.value = 'Correo invalido.'
+        if (status === 400) errorMessage.value = messages.auth.preLoginInvalidEmailShort
       }
       return false
     } finally {
@@ -66,11 +72,15 @@ export const useStorePreLogin = defineStore('preLogin', () => {
   }
 
   return {
+    // State
     preLoginSubmitting,
     loginError,
     mfaRequired,
+    // Messages
     errorMessage,
+    // Actions
     preLogin,
+    // Setters
     getPreLoginEmail,
     getPreLoginMfaRequired,
     clearPreLoginSession,

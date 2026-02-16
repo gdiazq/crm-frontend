@@ -8,7 +8,8 @@ import {
   AUTH_ROUTE_LOGIN,
   AUTH_ROUTE_RECOVERY,
 } from '@/constants'
-import { initialLoginCredentialsForm, loginCredentialsValidationRules } from '@/factories'
+import { initialLoginCredentialsForm } from '@/factories'
+import { loginCredentialsValidationRules } from '@/rules'
 import { useFormValidation } from '@/composables'
 import { useStoreAuth, useStoreLoginCredentials, useStoreTheme } from '@/stores'
 

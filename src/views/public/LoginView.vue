@@ -9,7 +9,8 @@ import {
   AUTH_ROUTE_RECOVERY,
   REMEMBER_EMAIL_STORAGE_KEY,
 } from '@/constants'
-import { initialPreLoginForm, preLoginValidationRules } from '@/factories'
+import { initialPreLoginForm } from '@/factories'
+import { preLoginValidationRules } from '@/rules'
 import { useFormValidation } from '@/composables'
 import { mapperPreLoginPayload } from '@/mappers'
 import { useStorePreLogin, useStoreTheme } from '@/stores'
@@ -43,7 +44,7 @@ const submitForm = async () => {
   const emailValid = validateField('email')
   if (!emailValid) return
 
-  const payload = mapperPreLoginPayload(form.value.email)
+  const payload = mapperPreLoginPayload(form.value)
   const success = await storePreLogin.preLogin(payload.email)
   if (!success) return
 

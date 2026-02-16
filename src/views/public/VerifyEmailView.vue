@@ -4,7 +4,8 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { ButtonComponent, FooterComponent, ResendVerificationModal, ThemeToggle, VerificationCodeInputComponent } from '@/components'
 import { AUTH_ROUTE_CREATE_PASSWORD, AUTH_ROUTE_LOGIN } from '@/constants'
-import { initialResendVerificationForm, initialVerifyEmailForm, verifyEmailValidationRules } from '@/factories'
+import { initialResendVerificationForm, initialVerifyEmailForm } from '@/factories'
+import { verifyEmailValidationRules } from '@/rules'
 import { useFormValidation } from '@/composables'
 import { mapperResendVerificationPayload, mapperVerifyEmailPayload } from '@/mappers'
 import { useStoreAuth, useStoreTheme } from '@/stores'
@@ -58,7 +59,7 @@ const handleResendCode = async () => {
     return
   }
 
-  const payload = mapperResendVerificationPayload(pendingVerifyEmail.value, resendForm.value.phoneNumber)
+  const payload = mapperResendVerificationPayload(pendingVerifyEmail.value, resendForm.value)
   const success = await storeAuth.resendVerification(payload)
   if (success) {
     form.value.code = ''
@@ -96,7 +97,7 @@ const submitForm = async () => {
     return
   }
 
-  const payload = mapperVerifyEmailPayload(pendingVerifyEmail.value, form.value.code)
+  const payload = mapperVerifyEmailPayload(pendingVerifyEmail.value, form.value)
   const success = await storeAuth.verifyEmail(payload)
   if (success) {
     router.push(AUTH_ROUTE_CREATE_PASSWORD)

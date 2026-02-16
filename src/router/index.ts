@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import { LAYOUT_PRIVATE, LAYOUT_PUBLIC } from '@/constants'
 import { useStoreAuth } from '@/stores'
 import { handleAuthentication } from '@/middlewares/auth.middleware'
 
@@ -11,11 +12,11 @@ import VerifyEmailView from '@/views/public/VerifyEmailView.vue'
 import CreatePasswordView from '@/views/public/CreatePasswordView.vue'
 import DashboardExampleView from '@/views/public/DashboardExampleView.vue'
 import LogoutView from '@/views/public/LogoutView.vue'
-import HomeView from '@/views/HomeView.vue'
-import DashboardView from '@/views/private/DashboardView.vue'
-import SettingsView from '@/views/private/SettingsView.vue'
-import UnauthorizedView from '@/views/UnauthorizedView.vue'
-import NotFoundView from '@/views/NotFoundView.vue'
+import HomeView from '@/views/frontpage/HomeView.vue'
+import DashboardView from '@/views/dashboard/DashboardView.vue'
+import SettingsView from '@/views/settings/SettingsView.vue'
+import UnauthorizedView from '@/views/errors/UnauthorizedView.vue'
+import NotFoundView from '@/views/errors/NotFoundView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -24,7 +25,7 @@ const routes: RouteRecordRaw[] = [
     component: LoginView,
     meta: {
       title: 'Login',
-      layout: 'LayoutPublicDefault',
+      layout: LAYOUT_PUBLIC,
       requiresAuth: false,
       permissionType: 'canRead',
       requiresPermissions: false,
@@ -38,7 +39,7 @@ const routes: RouteRecordRaw[] = [
     component: LoginCredentialsView,
     meta: {
       title: 'Login',
-      layout: 'LayoutPublicDefault',
+      layout: LAYOUT_PUBLIC,
       requiresAuth: false,
       permissionType: 'canRead',
       requiresPermissions: false,
@@ -52,7 +53,7 @@ const routes: RouteRecordRaw[] = [
     component: RegisterView,
     meta: {
       title: 'Registro',
-      layout: 'LayoutPublicDefault',
+      layout: LAYOUT_PUBLIC,
       requiresAuth: false,
       permissionType: 'canRead',
       requiresPermissions: false,
@@ -66,7 +67,7 @@ const routes: RouteRecordRaw[] = [
     component: RecoveryView,
     meta: {
       title: 'Recuperar contraseña',
-      layout: 'LayoutPublicDefault',
+      layout: LAYOUT_PUBLIC,
       requiresAuth: false,
       permissionType: 'canRead',
       requiresPermissions: false,
@@ -80,7 +81,7 @@ const routes: RouteRecordRaw[] = [
     component: VerifyEmailView,
     meta: {
       title: 'Verificar correo',
-      layout: 'LayoutPublicDefault',
+      layout: LAYOUT_PUBLIC,
       requiresAuth: false,
       permissionType: 'canRead',
       requiresPermissions: false,
@@ -94,7 +95,7 @@ const routes: RouteRecordRaw[] = [
     component: CreatePasswordView,
     meta: {
       title: 'Crear contraseña',
-      layout: 'LayoutPublicDefault',
+      layout: LAYOUT_PUBLIC,
       requiresAuth: false,
       permissionType: 'canRead',
       requiresPermissions: false,
@@ -108,7 +109,7 @@ const routes: RouteRecordRaw[] = [
     component: LogoutView,
     meta: {
       title: 'Logout',
-      layout: 'LayoutPublicDefault',
+      layout: LAYOUT_PUBLIC,
       requiresAuth: false,
       permissionType: 'canRead',
       requiresPermissions: false,
@@ -122,7 +123,7 @@ const routes: RouteRecordRaw[] = [
     component: DashboardExampleView,
     meta: {
       title: 'Dashboard Publico',
-      layout: 'LayoutPublicDefault',
+      layout: LAYOUT_PUBLIC,
       requiresAuth: false,
       permissionType: 'canRead',
       requiresPermissions: false,
@@ -136,7 +137,7 @@ const routes: RouteRecordRaw[] = [
     component: HomeView,
     meta: {
       title: 'Inicio',
-      layout: 'LayoutPublicDefault',
+      layout: LAYOUT_PUBLIC,
       requiresAuth: false,
       permissionType: 'canRead',
       requiresPermissions: false,
@@ -150,7 +151,7 @@ const routes: RouteRecordRaw[] = [
     component: DashboardView,
     meta: {
       title: 'Dashboard',
-      layout: 'LayoutPrivateDefault',
+      layout: LAYOUT_PRIVATE,
       requiresAuth: true,
       permissionType: 'canRead',
       requiresPermissions: false,
@@ -164,7 +165,7 @@ const routes: RouteRecordRaw[] = [
     component: SettingsView,
     meta: {
       title: 'Settings',
-      layout: 'LayoutPrivateDefault',
+      layout: LAYOUT_PRIVATE,
       requiresAuth: true,
       permissionType: 'canRead',
       requiresPermissions: false,
@@ -178,7 +179,7 @@ const routes: RouteRecordRaw[] = [
     component: UnauthorizedView,
     meta: {
       title: 'No autorizado',
-      layout: 'LayoutPrivateDefault',
+      layout: LAYOUT_PRIVATE,
       requiresAuth: true,
       permissionType: 'canRead',
       requiresPermissions: false,
@@ -192,7 +193,7 @@ const routes: RouteRecordRaw[] = [
     component: NotFoundView,
     meta: {
       title: 'Not found',
-      layout: 'LayoutPublicDefault',
+      layout: LAYOUT_PUBLIC,
       requiresAuth: false,
       permissionType: 'canRead',
       requiresPermissions: false,

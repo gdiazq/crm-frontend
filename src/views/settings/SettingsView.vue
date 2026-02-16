@@ -4,11 +4,8 @@ import { storeToRefs } from 'pinia'
 import QRCode from 'qrcode'
 import { InputComponent, ButtonComponent, TabsComponent } from '@/components'
 import { useFormValidation } from '@/composables'
-import {
-  initialUpdateAvatarForm,
-  initialUpdateProfileForm,
-  settingsUpdateProfileValidationRules,
-} from '@/factories'
+import { initialUpdateAvatarForm, initialUpdateProfileForm } from '@/factories'
+import { settingsUpdateProfileValidationRules } from '@/rules'
 import { mapperSettingProfileForm, mapperUpdateProfilePayload } from '@/mappers'
 import { useStoreAuth, useStoreSettings } from '@/stores'
 
@@ -147,13 +144,7 @@ const handleSaveProfile = async () => {
     return
   }
 
-  const payload = mapperUpdateProfilePayload(
-    user.value.id,
-    profile.value.email,
-    profile.value.firstName,
-    profile.value.lastName,
-    profile.value.phoneNumber,
-  )
+  const payload = mapperUpdateProfilePayload(user.value.id, profile.value)
   const success = await storeAuth.updateProfile(payload)
   if (success) {
     storeSettings.setStatusMessage('Informacion de cuenta actualizada correctamente.')

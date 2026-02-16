@@ -14,15 +14,18 @@ import {
   mapperArchiveNotification,
   mapperMarkAsNotRead,
   mapperMarkAsRead,
-  mapperNotificationIdToNumber,
-  mapperNotificationIds,
-  mapperNotificationIdsToNumbers,
-  mapperNotificationIdsFromInbox,
-  mapperNotificationsById,
-  mapperNotificationsByIds,
   mapperNotification,
   mapperNotificationFromPayload,
 } from '@/mappers'
+import {
+  findNotificationById,
+  updateNotificationsByIds,
+  getInboxNotificationIds,
+  getNotificationIds,
+  convertIdsToNumbers,
+  convertIdToNumber,
+} from '@/utils'
+import messages from '@/messages/messages'
 import type {
   IncomingNotificationPayload,
   NotificationItem,
@@ -107,6 +110,7 @@ const notificationTabFilters: Record<number, (item: NotificationItem) => boolean
 const isValidUserId = (userId: number) => Number.isInteger(userId) && userId > 0
 
 export const useStoreNotification = defineStore('notification', {
+  // State
   state: () => ({
     counter: { ...initialCounterNotification },
     notifications: [...initialNotifications],
@@ -115,6 +119,8 @@ export const useStoreNotification = defineStore('notification', {
     errorMessage: initialErrorMessageNotification,
     loadingNotifications: initialLoadingNotification,
   }),
+
+  // Getters
   getters: {
     unreadCount: (state) => state.counter.totalUnread,
     hasNotifications: (state) => state.notifications.length > 0,
@@ -124,6 +130,8 @@ export const useStoreNotification = defineStore('notification', {
       return state.notifications
     },
   },
+
+  // Actions
   actions: {
     captureTab(tab: number) {
       this.tab = tab
@@ -144,7 +152,7 @@ export const useStoreNotification = defineStore('notification', {
 
         this.notifications = data.content.map(mapperNotification)
       } catch {
-        this.errorMessage = 'No se pudieron cargar las notificaciones.'
+        this.errorMessage = messages.notification.loadError
       } finally {
         this.loadingNotifications = false
       }
@@ -157,13 +165,14 @@ export const useStoreNotification = defineStore('notification', {
         })
         this.counter = data
       } catch {
-        this.errorMessage = 'No se pudo obtener el contador de notificaciones.'
+        this.errorMessage = messages.notification.counterError
       }
     },
 
+    /* === Mutations === */
     async mutationMarkAllAsRead(userId: number) {
       if (!isValidUserId(userId)) {
-        this.errorMessage = 'Usuario invalido para marcar notificaciones.'
+        this.errorMessage = messages.notification.invalidUserMarkAll
         return
       }
 
@@ -171,33 +180,33 @@ export const useStoreNotification = defineStore('notification', {
         await axiosInstance.patch(`${NOTIFICATION_BASE_PATH}/read-all`, {
           userId,
         })
-        this.notifications = mapperNotificationsByIds(
+        this.notifications = updateNotificationsByIds(
           this.notifications,
-          mapperNotificationIds(this.notifications),
+          getNotificationIds(this.notifications),
           mapperMarkAsRead,
         )
         await this.getCounter(userId)
       } catch (error) {
         if (axios.isAxiosError(error)) {
-          this.errorMessage = error.response?.data?.message || 'No se pudieron marcar todas como leidas.'
+          this.errorMessage = error.response?.data?.message || messages.notification.markAllReadError
           return
         }
-        this.errorMessage = 'No se pudieron marcar todas como leidas.'
+        this.errorMessage = messages.notification.markAllReadError
       }
     },
 
     async mutationArchiveAll(userId: number) {
       if (!isValidUserId(userId)) {
-        this.errorMessage = 'Usuario invalido para archivar notificaciones.'
+        this.errorMessage = messages.notification.invalidUserArchive
         return
       }
 
-      const ids = mapperNotificationIdsFromInbox(this.notifications)
+      const ids = getInboxNotificationIds(this.notifications)
       if (ids.length === 0) return
 
-      const numericIds = mapperNotificationIdsToNumbers(ids)
+      const numericIds = convertIdsToNumbers(ids)
       if (numericIds.length === 0) {
-        this.errorMessage = 'No se pudo convertir los ids para archivar.'
+        this.errorMessage = messages.notification.archiveConvertError
         return
       }
 
@@ -206,26 +215,26 @@ export const useStoreNotification = defineStore('notification', {
           ids: numericIds,
           userId,
         })
-        this.notifications = mapperNotificationsByIds(this.notifications, ids, mapperArchiveNotification)
+        this.notifications = updateNotificationsByIds(this.notifications, ids, mapperArchiveNotification)
         await this.getCounter(userId)
       } catch (error) {
         if (axios.isAxiosError(error)) {
-          this.errorMessage = error.response?.data?.message || 'No se pudieron archivar las notificaciones.'
+          this.errorMessage = error.response?.data?.message || messages.notification.archiveAllError
           return
         }
-        this.errorMessage = 'No se pudieron archivar las notificaciones.'
+        this.errorMessage = messages.notification.archiveAllError
       }
     },
 
     async mutationArchiveNotification(payload: NotificationItem, userId: number) {
       if (!isValidUserId(userId)) {
-        this.errorMessage = 'Usuario invalido para archivar notificaciones.'
+        this.errorMessage = messages.notification.invalidUserArchive
         return
       }
 
-      const numericId = mapperNotificationIdToNumber(payload.id)
+      const numericId = convertIdToNumber(payload.id)
       if (numericId === null) {
-        this.errorMessage = 'Id de notificacion invalido para archivar.'
+        this.errorMessage = messages.notification.invalidIdArchive
         return
       }
 
@@ -234,26 +243,26 @@ export const useStoreNotification = defineStore('notification', {
           ids: [numericId],
           userId,
         })
-        this.notifications = mapperNotificationsById(this.notifications, payload.id, mapperArchiveNotification)
+        this.notifications = findNotificationById(this.notifications, payload.id, mapperArchiveNotification)
         await this.getCounter(userId)
       } catch (error) {
         if (axios.isAxiosError(error)) {
-          this.errorMessage = error.response?.data?.message || 'No se pudo archivar la notificacion.'
+          this.errorMessage = error.response?.data?.message || messages.notification.archiveOneError
           return
         }
-        this.errorMessage = 'No se pudo archivar la notificacion.'
+        this.errorMessage = messages.notification.archiveOneError
       }
     },
 
     async mutationMarkAsRead(payload: NotificationItem, userId: number) {
       if (!isValidUserId(userId)) {
-        this.errorMessage = 'Usuario invalido para marcar como leida.'
+        this.errorMessage = messages.notification.invalidUserRead
         return
       }
 
-      const numericId = mapperNotificationIdToNumber(payload.id)
+      const numericId = convertIdToNumber(payload.id)
       if (numericId === null) {
-        this.errorMessage = 'Id de notificacion invalido para marcar como leida.'
+        this.errorMessage = messages.notification.invalidIdRead
         return
       }
 
@@ -262,25 +271,26 @@ export const useStoreNotification = defineStore('notification', {
           ids: [numericId],
           userId,
         })
-        this.notifications = mapperNotificationsById(this.notifications, payload.id, mapperMarkAsRead)
+        this.notifications = findNotificationById(this.notifications, payload.id, mapperMarkAsRead)
         await this.getCounter(userId)
       } catch (error) {
         if (axios.isAxiosError(error)) {
-          this.errorMessage = error.response?.data?.message || 'No se pudo marcar la notificacion como leida.'
+          this.errorMessage = error.response?.data?.message || messages.notification.markReadError
           return
         }
-        this.errorMessage = 'No se pudo marcar la notificacion como leida.'
+        this.errorMessage = messages.notification.markReadError
       }
     },
 
     mutationMarkAsNotRead(payload: NotificationItem) {
-      this.notifications = mapperNotificationsById(this.notifications, payload.id, mapperMarkAsNotRead)
+      this.notifications = findNotificationById(this.notifications, payload.id, mapperMarkAsNotRead)
     },
 
     clearNotifications() {
       this.notifications = []
     },
 
+    // Handlers
     disconnect() {
       if (!activeStompClient) return
 
@@ -296,7 +306,7 @@ export const useStoreNotification = defineStore('notification', {
       const wsUrl = resolveWsUrl()
       if (!wsUrl) {
         this.status = 'error'
-        this.errorMessage = 'Falta configurar VITE_NOTIFICATIONS_WS_URL para notificaciones.'
+        this.errorMessage = messages.notification.wsUrlMissing
         return
       }
 
@@ -308,13 +318,13 @@ export const useStoreNotification = defineStore('notification', {
         wsTicket = await requestWsTicket()
       } catch {
         this.status = 'error'
-        this.errorMessage = 'No se pudo obtener ticket para notificaciones.'
+        this.errorMessage = messages.notification.wsTicketError
         return
       }
 
       if (!wsTicket) {
         this.status = 'error'
-        this.errorMessage = 'Ticket de notificaciones invalido.'
+        this.errorMessage = messages.notification.wsTicketInvalid
         return
       }
 
@@ -331,19 +341,19 @@ export const useStoreNotification = defineStore('notification', {
           client.subscribe(`/topic/notifications/${userId}`, async (message) => {
             const payload = parseNotificationPayload(message.body)
             const notification = payload
-              ? mapperNotificationFromPayload(payload, 'Tienes una nueva notificacion.')
-              : mapperNotificationFromPayload({}, String(message.body || 'Tienes una nueva notificacion.'))
+              ? mapperNotificationFromPayload(payload, messages.notification.newNotificationFallback)
+              : mapperNotificationFromPayload({}, String(message.body || messages.notification.newNotificationFallback))
             this.pushNotification(notification)
             await this.getCounter(userId)
           })
         },
         onWebSocketError: () => {
           this.status = 'error'
-          this.errorMessage = 'Error en la conexion de notificaciones.'
+          this.errorMessage = messages.notification.wsConnectionError
         },
         onStompError: () => {
           this.status = 'error'
-          this.errorMessage = 'Error en el broker STOMP de notificaciones.'
+          this.errorMessage = messages.notification.wsStompError
         },
         onDisconnect: () => {
           if (this.status !== 'error') this.status = 'disconnected'
