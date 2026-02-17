@@ -1,18 +1,40 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useRouter } from 'vue-router'
-import { NavbarComponent, NotificationPanel } from '@/components'
+import { useRoute, useRouter } from 'vue-router'
+import {
+  AUTH_ROUTE_DASHBOARD,
+  AUTH_ROUTE_LOGIN,
+  AUTH_ROUTE_LOGOUT,
+  AUTH_ROUTE_SETTINGS,
+  AUTH_ROUTE_USERS,
+} from '@/constants'
+import { NavbarComponent, NotificationPanel, SidebarComponent } from '@/components'
 import { useStoreAuth, useStoreNotification, useStoreTheme } from '@/stores'
 
+const route = useRoute()
 const router = useRouter()
 const storeAuth = useStoreAuth()
 const storeNotification = useStoreNotification()
 const storeTheme = useStoreTheme()
 const { filterNotifications, unreadCount } = storeToRefs(storeNotification)
 const { isDark } = storeToRefs(storeTheme)
+const slideSidebarMobile = ref(false)
+const sidebarCollapsed = ref(false)
 const slideNotificaciones = ref(false)
 const slideSettings = ref(false)
+
+const handleToggleSidebarMobile = () => {
+  slideSidebarMobile.value = !slideSidebarMobile.value
+}
+
+const handleCloseSidebarMobile = () => {
+  slideSidebarMobile.value = false
+}
+
+const handleToggleSidebarCollapse = () => {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+}
 
 const toggleNotificaciones = (event?: Event) => {
   slideNotificaciones.value = !slideNotificaciones.value
@@ -34,18 +56,27 @@ const handleCloseSettings = () => {
 }
 
 const handleGoDashboard = () => {
+  slideSidebarMobile.value = false
   slideSettings.value = false
-  router.push('/dashboard')
+  router.push(AUTH_ROUTE_DASHBOARD)
+}
+
+const handleGoUsers = () => {
+  slideSidebarMobile.value = false
+  slideSettings.value = false
+  router.push(AUTH_ROUTE_USERS)
 }
 
 const handleGoSettings = () => {
+  slideSidebarMobile.value = false
   slideSettings.value = false
-  router.push('/settings')
+  router.push(AUTH_ROUTE_SETTINGS)
 }
 
 const handleGoLogout = () => {
+  slideSidebarMobile.value = false
   slideSettings.value = false
-  router.push('/logout')
+  router.push(AUTH_ROUTE_LOGOUT)
 }
 
 const handleToggleTheme = () => {
@@ -85,7 +116,7 @@ onMounted(async () => {
     try {
       await storeAuth.getCurrentUser()
     } catch {
-      router.push('/login')
+      router.push(AUTH_ROUTE_LOGIN)
       return
     }
   }
@@ -108,9 +139,20 @@ onBeforeUnmount(() => {
   <main
     v-cloak
     id="layout-private-default"
-    class="layout-private-default min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100"
+    class="layout-private-default flex min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100"
   >
-    <section class="flex min-h-screen w-full flex-col">
+    <SidebarComponent
+      :current-path="route.path"
+      :mobile-open="slideSidebarMobile"
+      :collapsed="sidebarCollapsed"
+      :on-close-mobile="handleCloseSidebarMobile"
+      :on-toggle-desktop-collapse="handleToggleSidebarCollapse"
+      :on-go-dashboard="handleGoDashboard"
+      :on-go-users="handleGoUsers"
+      :on-go-logout="handleGoLogout"
+    />
+
+    <section class="flex min-h-screen w-full flex-col lg:pl-0">
       <NavbarComponent
         :unread-count="unreadCount"
         :user-label="storeAuth.user?.username || storeAuth.user?.email || 'Usuario'"
@@ -121,6 +163,7 @@ onBeforeUnmount(() => {
         :settings-dropdown-open="slideSettings"
         :on-toggle-settings-dropdown="handleToggleSettings"
         :on-close-settings-dropdown="handleCloseSettings"
+        :on-toggle-sidebar="handleToggleSidebarMobile"
         :on-go-settings="handleGoSettings"
         :on-go-logout="handleGoLogout"
         :on-toggle-notifications="toggleNotificaciones"

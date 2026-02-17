@@ -15,6 +15,7 @@ import LogoutView from '@/views/public/LogoutView.vue'
 import HomeView from '@/views/frontpage/HomeView.vue'
 import DashboardView from '@/views/dashboard/DashboardView.vue'
 import SettingsView from '@/views/settings/SettingsView.vue'
+import UsersDashboardView from '@/views/users/UsersDashboardView.vue'
 import UnauthorizedView from '@/views/errors/UnauthorizedView.vue'
 import NotFoundView from '@/views/errors/NotFoundView.vue'
 
@@ -170,6 +171,20 @@ const routes: RouteRecordRaw[] = [
       permissionType: 'canRead',
       requiresPermissions: false,
       module: 'Settings',
+      parent: '',
+    },
+  },
+  {
+    path: '/users',
+    name: 'Users',
+    component: UsersDashboardView,
+    meta: {
+      title: 'Usuarios',
+      layout: LAYOUT_PRIVATE,
+      requiresAuth: true,
+      permissionType: 'canRead',
+      requiresPermissions: false,
+      module: 'Users',
       parent: '',
     },
   },

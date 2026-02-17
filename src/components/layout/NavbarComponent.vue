@@ -7,6 +7,7 @@ const props = defineProps<{
   userEmail?: string
   avatarUrl?: string
   isDark: boolean
+  onToggleSidebar?: () => void
   onGoDashboard: () => void
   settingsDropdownOpen: boolean
   onToggleSettingsDropdown: () => void
@@ -20,7 +21,17 @@ const props = defineProps<{
 
 <template>
   <header class="flex items-center justify-between border-b border-slate-200 bg-white/80 px-6 py-4 dark:border-white/10 dark:bg-slate-900/40">
-    <nav class="flex items-center gap-2 text-sm">
+    <div class="flex items-center gap-2 text-sm">
+      <button
+        type="button"
+        class="rounded-lg p-2 hover:bg-slate-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white lg:hidden dark:focus-visible:ring-offset-slate-900"
+        @click="props.onToggleSidebar?.()"
+      >
+        <span class="sr-only">Abrir menu</span>
+        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
       <button
         type="button"
         class="rounded-lg px-3 py-2 hover:bg-slate-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
@@ -28,7 +39,7 @@ const props = defineProps<{
       >
         Dashboard
       </button>
-    </nav>
+    </div>
 
     <div class="flex items-center gap-2">
       <DrodownComponente

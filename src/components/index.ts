@@ -3,6 +3,7 @@ import NotificationPanel from './layout/NotificationPanel.vue'
 import CookieConsentBanner from './layout/CookieConsentBanner.vue'
 import ResendVerificationModal from './dialog/ResendVerificationModal.vue'
 import NavbarComponent from './layout/NavbarComponent.vue'
+import SidebarComponent from './layout/SidebarComponent.vue'
 import DrodownComponente from './layout/DrodownComponente.vue'
 import TabsComponent from './layout/TabsComponent.vue'
 import FooterComponent from './layout/FooterComponent.vue'
@@ -24,6 +25,7 @@ export {
   CookieConsentBanner,
   ResendVerificationModal,
   NavbarComponent,
+  SidebarComponent,
   DrodownComponente,
   TabsComponent,
   FooterComponent,
