@@ -23,6 +23,12 @@ export interface UserTableRow {
   status?: boolean
 }
 
+export interface UserRowAction {
+  id: string
+  label: string
+  tone?: 'default' | 'danger'
+}
+
 export interface UserPagedResponse {
   content: UserRaw[]
   totalElements: number
@@ -40,4 +46,10 @@ export interface UsersPagination {
   totalPages: number
   first: boolean
   last: boolean
+}
+
+export interface UsersQueryParams {
+  page: number
+  size: number
+  search: string
 }

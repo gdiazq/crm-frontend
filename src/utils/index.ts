@@ -8,9 +8,16 @@ export {
   convertIdsToNumbers,
   convertIdToNumber,
 } from './useNotificationUtils'
+export { normalizeVariant } from './useNotificationVariant'
+export { formatDate, formatDateTime } from './useFormatUtils'
 export {
-  formatLastSeen,
+  formatCurrency,
+  formatNumber,
+  formatVariationLabel,
+} from './useDashboardUtils'
+export {
   findDeviceById,
   removeDeviceById,
   keepCurrentDevices,
 } from './useSettingUtils'
+export { formatRoleLabel } from './useUsersUtils'

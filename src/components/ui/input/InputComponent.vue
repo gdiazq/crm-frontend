@@ -2,7 +2,7 @@
 const props = withDefaults(
   defineProps<{
     modelValue: string
-    label: string
+    label?: string
     type?: string
     placeholder?: string
     required?: boolean
@@ -13,6 +13,7 @@ const props = withDefaults(
     onValueChange?: (value: string) => void
   }>(),
   {
+    label: '',
     type: 'text',
     placeholder: '',
     required: false,
@@ -31,7 +32,7 @@ const handleInput = (event: Event) => {
 
 <template>
   <label class="block">
-    <span class="mb-1 block text-xs font-semibold uppercase tracking-wide opacity-80">{{ label }}</span>
+    <span v-if="props.label" class="mb-1 block text-xs font-semibold uppercase tracking-wide opacity-80">{{ props.label }}</span>
     <input
       :value="props.modelValue"
       :type="props.type"

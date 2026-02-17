@@ -23,6 +23,7 @@ export {
   usersTableColumns,
   initialUsersRows,
   initialUsersPagination,
+  initialUsersQueryParams,
 } from './users/users.factory'
 export {
   initialSettingsDevices,

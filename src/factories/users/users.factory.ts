@@ -1,4 +1,4 @@
-import type { UserTableRow, UsersPagination } from '@/interfaces'
+import type { UserTableRow, UsersPagination, UsersQueryParams } from '@/interfaces'
 
 export const usersTableColumns: string[] = [
   'Usuario',
@@ -10,6 +10,7 @@ export const usersTableColumns: string[] = [
   'Estado',
   'Creado',
   'Ultimo acceso',
+  'Acciones',
 ]
 
 export const initialUsersRows: UserTableRow[] = []
@@ -21,4 +22,10 @@ export const initialUsersPagination: UsersPagination = {
   totalPages: 0,
   first: true,
   last: true,
+}
+
+export const initialUsersQueryParams: UsersQueryParams = {
+  page: 0,
+  size: 8,
+  search: '',
 }

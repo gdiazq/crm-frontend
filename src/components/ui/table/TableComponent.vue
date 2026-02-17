@@ -41,12 +41,12 @@ const props = withDefaults(
         <tbody class="divide-y divide-slate-200 dark:divide-white/10">
           <tr v-for="row in props.rows" :key="row.id" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
             <td
-              v-for="(value, index) in row.values"
-              :key="`${row.id}-${index}`"
+              v-for="(column, index) in props.columns"
+              :key="`${row.id}-${column}-${index}`"
               class="whitespace-nowrap px-4 py-3 text-sm text-slate-700 dark:text-slate-200"
             >
-              <slot name="cell" :row="row" :value="value" :column-index="index">
-                {{ value }}
+              <slot name="cell" :row="row" :value="row.values[index]" :column-index="index">
+                {{ row.values[index] || '-' }}
               </slot>
             </td>
           </tr>

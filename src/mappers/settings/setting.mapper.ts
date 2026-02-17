@@ -11,7 +11,7 @@ import type {
   SettingUpdateProfilePayload,
 } from '@/interfaces'
 import messages from '@/messages/messages'
-import { formatLastSeen } from '@/utils'
+import { formatDateTime } from '@/utils'
 
 export function mapperUpdateProfilePayload(id: number, form: SettingUpdateProfileForm): SettingUpdateProfilePayload {
   return {
@@ -66,7 +66,7 @@ export function mapperSettingSessionsFromResponse(
         id: resolvedId,
         name: item.userAgent?.trim() || `${messages.settings.sessionDefaultName} ${index + 1}`,
         location: item.ipAddress?.trim() || messages.settings.sessionNoIp,
-        lastSeen: formatLastSeen(item.lastSeenAt || item.createdAt),
+        lastSeen: formatDateTime(item.lastSeenAt || item.createdAt, messages.settings.sessionNoActivity),
         current: (item.deviceId || '').trim() === currentDeviceId,
       }
     })

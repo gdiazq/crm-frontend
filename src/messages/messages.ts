@@ -90,6 +90,22 @@ export default {
     sessionDefaultName: 'Dispositivo',
     sessionNoIp: 'IP no disponible',
   },
+  users: {
+    noData: '-',
+    noDate: 'Sin registro',
+    emailVerifiedYes: 'Si',
+    emailVerifiedNo: 'No',
+    statusEnabled: 'Habilitado',
+    statusDisabled: 'Deshabilitado',
+    roleAdmin: 'Administrador',
+    roleUser: 'Usuario',
+    roleManager: 'Coordinador',
+    roleCoordinator: 'Coordinador',
+    actionViewDetail: 'Ver detalle',
+    updateUser: 'Editar usuario',
+    actionEnableUser: 'Habilitar usuario',
+    actionDisableUser: 'Deshabilitar usuario'
+  },
   dashboard: {
     loadError: 'No se pudo cargar el dashboard demo.',
   },

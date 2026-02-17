@@ -1,10 +1,5 @@
-import type { IncomingNotificationPayload, NotificationApiItem, NotificationItem, NotificationVariant } from '@/interfaces'
-
-function normalizeVariant(value: unknown): NotificationVariant {
-  const normalized = typeof value === 'string' ? value.toLowerCase() : 'info'
-  if (normalized === 'success' || normalized === 'warning' || normalized === 'error') return normalized
-  return 'info'
-}
+import type { IncomingNotificationPayload, NotificationApiItem, NotificationItem } from '@/interfaces'
+import { normalizeVariant } from '@/utils'
 
 export function mapperNotification(item: NotificationApiItem): NotificationItem {
   return {

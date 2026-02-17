@@ -17,6 +17,8 @@ export { mapperDashboardExample } from './dashboard/dashboard-example.mapper'
 export {
   mapperUsersRows,
   mapperUsersPagination,
+  mapperUsersRowActions,
+  mapperUsersQueryParams,
 } from './users/users.mapper'
 export {
   mapperArchiveNotification,

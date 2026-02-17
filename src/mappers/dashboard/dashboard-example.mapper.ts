@@ -7,29 +7,12 @@ import type {
   DashboardExampleRaw,
   DashboardExampleTaskRaw,
 } from '@/interfaces'
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    maximumFractionDigits: 0,
-  }).format(value)
-}
-
-function formatNumber(value: number) {
-  return new Intl.NumberFormat('es-CL').format(value)
-}
+import { formatCurrency, formatNumber, formatVariationLabel } from '@/utils'
 
 function mapKpiValue(item: DashboardExampleKpiRaw) {
   if (item.unit === 'currency') return formatCurrency(item.value)
   if (item.unit === 'percent') return `${item.value}%`
   return formatNumber(item.value)
-}
-
-function mapVariationLabel(variation: number) {
-  const absoluteValue = Math.abs(variation)
-  const sign = variation >= 0 ? '+' : '-'
-  return `${sign}${absoluteValue}% vs mes anterior`
 }
 
 function mapPipelineStage(item: DashboardExamplePipelineStageRaw) {
@@ -76,7 +59,7 @@ export function mapperDashboardExample(result: DashboardExampleRaw): DashboardEx
       id: item.id,
       label: item.label,
       displayValue: mapKpiValue(item),
-      variationLabel: mapVariationLabel(item.variation),
+      variationLabel: formatVariationLabel(item.variation),
       variationPositive: item.variation >= 0,
     })),
     pipeline: result.pipeline.map(mapPipelineStage),

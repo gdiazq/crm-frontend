@@ -15,10 +15,12 @@ import HeroHeader from './frontpage/HeroHeader.vue'
 import KpiPanel from './frontpage/KpiPanel.vue'
 import ButtonComponent from './ui/button/ButtonComponent.vue'
 import StatusBadgeComponent from './ui/badge/StatusBadgeComponent.vue'
+import ActionsDropdownComponent from './ui/dropdown/ActionsDropdownComponent.vue'
 import InputComponent from './ui/input/InputComponent.vue'
 import PasswordInputComponent from './ui/input/PasswordInputComponent.vue'
 import VerificationCodeInputComponent from './ui/input/VerificationCodeInputComponent.vue'
 import SelectComponent from './ui/select/SelectComponent.vue'
+import SearchBarComponent from './ui/search/SearchBarComponent.vue'
 import PaginationComponent from './ui/pagination/PaginationComponent.vue'
 import TableComponent from './ui/table/TableComponent.vue'
 
@@ -40,10 +42,12 @@ export {
   KpiPanel,
   ButtonComponent,
   StatusBadgeComponent,
+  ActionsDropdownComponent,
   InputComponent,
   PasswordInputComponent,
   VerificationCodeInputComponent,
   SelectComponent,
+  SearchBarComponent,
   PaginationComponent,
   TableComponent,
 }
