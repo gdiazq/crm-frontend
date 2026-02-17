@@ -5,6 +5,7 @@ import { useStoreNotification } from './notification.store'
 import { useStorePreLogin } from './pre-login.store'
 import { useStoreSettings } from './settings.store'
 import { useStoreTheme } from './theme.store'
+import { useStoreUsers } from './users.store'
 
 export {
   useStoreAuth,
@@ -14,4 +15,5 @@ export {
   useStorePreLogin,
   useStoreSettings,
   useStoreTheme,
+  useStoreUsers,
 }

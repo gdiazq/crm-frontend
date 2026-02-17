@@ -14,10 +14,13 @@ import HeroContent from './frontpage/HeroContent.vue'
 import HeroHeader from './frontpage/HeroHeader.vue'
 import KpiPanel from './frontpage/KpiPanel.vue'
 import ButtonComponent from './ui/button/ButtonComponent.vue'
+import StatusBadgeComponent from './ui/badge/StatusBadgeComponent.vue'
 import InputComponent from './ui/input/InputComponent.vue'
 import PasswordInputComponent from './ui/input/PasswordInputComponent.vue'
 import VerificationCodeInputComponent from './ui/input/VerificationCodeInputComponent.vue'
 import SelectComponent from './ui/select/SelectComponent.vue'
+import PaginationComponent from './ui/pagination/PaginationComponent.vue'
+import TableComponent from './ui/table/TableComponent.vue'
 
 export {
   ThemeToggle,
@@ -36,8 +39,11 @@ export {
   HeroHeader,
   KpiPanel,
   ButtonComponent,
+  StatusBadgeComponent,
   InputComponent,
   PasswordInputComponent,
   VerificationCodeInputComponent,
   SelectComponent,
+  PaginationComponent,
+  TableComponent,
 }

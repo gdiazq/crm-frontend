@@ -15,6 +15,10 @@ export {
 export { mapperLoginCredentialsPayload } from './auth/login-credentials.mapper'
 export { mapperDashboardExample } from './dashboard/dashboard-example.mapper'
 export {
+  mapperUsersRows,
+  mapperUsersPagination,
+} from './users/users.mapper'
+export {
   mapperArchiveNotification,
   mapperMarkAsNotRead,
   mapperMarkAsRead,

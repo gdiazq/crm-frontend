@@ -20,6 +20,11 @@ export { initialPreLoginForm } from './auth/pre-login.factory'
 export { initialLoginCredentialsForm } from './auth/login-credentials.factory'
 export { initialDashboardExample } from './dashboard/dashboard-example.factory'
 export {
+  usersTableColumns,
+  initialUsersRows,
+  initialUsersPagination,
+} from './users/users.factory'
+export {
   initialSettingsDevices,
   initialSettingsMfaState,
   initialSettingsMfaSetupData,

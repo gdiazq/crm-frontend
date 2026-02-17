@@ -39,6 +39,13 @@ export type {
 } from './dashboard'
 export type { CrmFeature, CrmStage, CrmStat } from './frontpage'
 export type {
+  UserRoleRaw,
+  UserRaw,
+  UserTableRow,
+  UserPagedResponse,
+  UsersPagination,
+} from './users'
+export type {
   IncomingNotificationPayload,
   NotificationApiItem,
   NotificationPagedFilters,
