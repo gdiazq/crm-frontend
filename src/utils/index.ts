@@ -21,3 +21,5 @@ export {
   keepCurrentDevices,
 } from './useSettingUtils'
 export { formatRoleLabel } from './useUsersUtils'
+export { useUsersAction } from './useUsersAction'
+export type { DropdownAction } from './useUsersAction'

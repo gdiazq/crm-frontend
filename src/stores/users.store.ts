@@ -4,6 +4,7 @@ import axios from 'axios'
 import { axiosInstance } from '@/config'
 import { initialUsersPagination, initialUsersQueryParams, initialUsersRows } from '@/factories'
 import { mapperUsersPagination, mapperUsersQueryParams, mapperUsersRows } from '@/mappers'
+import messages from '@/messages/messages'
 import type { UserPagedResponse, UserTableRow, UsersPagination, UsersQueryParams } from '@/interfaces'
 
 export const useStoreUsers = defineStore('users', () => {
@@ -36,9 +37,9 @@ export const useStoreUsers = defineStore('users', () => {
     } catch (error) {
       errorBack.value = error
       if (axios.isAxiosError(error)) {
-        errorMessage.value = error.response?.data?.message || 'No se pudo cargar la lista de usuarios.'
+        errorMessage.value = error.response?.data?.message || messages.users.loadError
       } else {
-        errorMessage.value = 'No se pudo cargar la lista de usuarios.'
+        errorMessage.value = messages.users.loadError
       }
     } finally {
       loadingUsers.value = false
@@ -82,7 +83,7 @@ export const useStoreUsers = defineStore('users', () => {
         status: nextStatus,
         values: row.values.map((value, index) => {
           if (index !== 6) return value
-          return nextStatus ? 'Habilitado' : 'Deshabilitado'
+          return nextStatus ? messages.users.statusEnabled : messages.users.statusDisabled
         }),
       }
     })

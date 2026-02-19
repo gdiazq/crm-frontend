@@ -104,7 +104,14 @@ export default {
     actionViewDetail: 'Ver detalle',
     updateUser: 'Editar usuario',
     actionEnableUser: 'Habilitar usuario',
-    actionDisableUser: 'Deshabilitar usuario'
+    actionDisableUser: 'Deshabilitar usuario',
+    loadError: 'No se pudo cargar la lista de usuarios.',
+    toggleEnabledSuccess: 'habilitado correctamente.',
+    toggleDisabledSuccess: 'deshabilitado correctamente.',
+    filtersComingSoon: 'Filtros avanzados disponibles proximamente.',
+    createComingSoon: 'Creacion de nuevo usuario disponible proximamente.',
+    viewDetailComingSoon: 'disponible proximamente.',
+    updateUserComingSoon: 'disponible proximamente.',
   },
   dashboard: {
     loadError: 'No se pudo cargar el dashboard demo.',

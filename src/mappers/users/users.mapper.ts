@@ -1,7 +1,6 @@
 import type {
   UserPagedResponse,
   UserRaw,
-  UserRowAction,
   UserTableRow,
   UsersPagination,
   UsersQueryParams,
@@ -30,13 +29,6 @@ export function mapperUsersRows(result: UserRaw[]): UserTableRow[] {
   }))
 }
 
-export function mapperUsersRowActions(enabled: boolean): UserRowAction[] {
-  return [
-    { id: 'view-detail', label: messages.users.actionViewDetail },
-    { id: 'update-user', label: messages.users.updateUser },
-    { id: 'toggle-status', label: enabled ? messages.users.actionDisableUser : messages.users.actionEnableUser, tone: enabled ? 'danger' : 'default' },
-  ]
-}
 
 export function mapperUsersPagination(result: UserPagedResponse): UsersPagination {
   return {

@@ -3,11 +3,14 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { ActionsDropdownComponent, ButtonComponent, PaginationComponent, SearchBarComponent, StatusBadgeComponent, TableComponent } from '@/components'
 import { usersTableColumns } from '@/factories'
-import { mapperUsersRowActions } from '@/mappers'
+import messages from '@/messages/messages'
 import { useStoreUsers } from '@/stores'
+import { useUsersAction } from '@/utils'
 import type { UserTableRow } from '@/interfaces'
+import type { DropdownAction } from '@/utils'
 
 const storeUsers = useStoreUsers()
+const { actionViewDetail, actionUpdateUser, actionToggleStatus } = useUsersAction()
 const { usersRows, pagination, queryParams, loadingUsers, errorMessage } = storeToRefs(storeUsers)
 const openActionsRowId = ref<string | null>(null)
 const actionsMessage = ref<string>('')
@@ -20,61 +23,41 @@ const handleGoPage = async (page: number) => {
   await storeUsers.goToPage(page - 1)
 }
 
-const handlePreviousPage = async () => {
-  await storeUsers.previousPage()
-}
-
-const handleNextPage = async () => {
-  await storeUsers.nextPage()
-}
-
-const handleSearchValue = (value: string) => {
-  storeUsers.setSearch(value)
-}
-
-const handleSearchUsers = async () => {
-  await storeUsers.searchUsers()
-}
-
 const handleOpenFilters = () => {
-  actionsMessage.value = 'Filtros avanzados disponibles proximamente.'
+  actionsMessage.value = messages.users.filtersComingSoon
 }
 
 const handleCreateUser = () => {
-  actionsMessage.value = 'Creacion de nuevo usuario disponible proximamente.'
+  actionsMessage.value = messages.users.createComingSoon
 }
 
 const handleToggleRowActions = (rowId: string) => {
   openActionsRowId.value = openActionsRowId.value === rowId ? null : rowId
 }
 
-const resolveRowActions = (row: UserTableRow) => {
-  return mapperUsersRowActions(Boolean(row.status))
-}
-
-const handleSelectRowAction = (row: UserTableRow, actionId: string) => {
-  if (actionId === 'view-detail') {
-    actionsMessage.value = `Detalle de usuario ${row.values[0]} disponible proximamente.`
-  }
-
-  if (actionId === 'toggle-status') {
-    const nextStatus = !Boolean(row.status)
-    storeUsers.mutationToggleUserStatus(row.id)
-    actionsMessage.value = nextStatus
-      ? `Usuario ${row.values[0]} habilitado correctamente.`
-      : `Usuario ${row.values[0]} deshabilitado correctamente.`
-  }
-
-  if (actionId === 'custom-reset-mfa') {
-    actionsMessage.value = `Reset MFA para ${row.values[0]} disponible proximamente.`
-  }
-
-  if (actionId === 'custom-resend-invite') {
-    actionsMessage.value = `Reenvio de invitacion para ${row.values[0]} disponible proximamente.`
-  }
-
+// Row action handlers
+const handleViewDetail = (row: UserTableRow) => {
+  actionsMessage.value = `${row.values[0]} ${messages.users.viewDetailComingSoon}`
   openActionsRowId.value = null
 }
+
+const handleUpdateUser = (row: UserTableRow) => {
+  actionsMessage.value = `${row.values[0]} ${messages.users.updateUserComingSoon}`
+  openActionsRowId.value = null
+}
+
+const handleToggleStatus = (row: UserTableRow) => {
+  const nextStatus = !Boolean(row.status)
+  storeUsers.mutationToggleUserStatus(row.id)
+  actionsMessage.value = `${row.values[0]} ${nextStatus ? messages.users.toggleEnabledSuccess : messages.users.toggleDisabledSuccess}`
+  openActionsRowId.value = null
+}
+
+const resolveRowActions = (row: UserTableRow): DropdownAction[] => [
+  actionViewDetail(() => handleViewDetail(row)),
+  actionUpdateUser(() => handleUpdateUser(row)),
+  actionToggleStatus(Boolean(row.status), () => handleToggleStatus(row)),
+]
 
 const handleCloseRowActions = () => {
   openActionsRowId.value = null
@@ -124,8 +107,8 @@ onBeforeUnmount(() => {
           :value="queryParams.search"
           :loading="loadingUsers"
           placeholder="Buscar por nombre, apellido o correo"
-          :on-value-change="handleSearchValue"
-          :on-search="handleSearchUsers"
+          :on-value-change="storeUsers.setSearch"
+          :on-search="storeUsers.searchUsers"
         />
       </div>
       <div class="flex items-center md:ml-auto">
@@ -152,7 +135,6 @@ onBeforeUnmount(() => {
           :open="openActionsRowId === row.id"
           :actions="resolveRowActions(row)"
           :on-toggle="() => handleToggleRowActions(row.id)"
-          :on-select="(actionId) => handleSelectRowAction(row, actionId)"
         />
         <span v-else>{{ value }}</span>
       </template>
@@ -164,8 +146,8 @@ onBeforeUnmount(() => {
         :total-pages="totalPages"
         :loading="loadingUsers"
         :on-go-page="handleGoPage"
-        :on-previous="handlePreviousPage"
-        :on-next="handleNextPage"
+        :on-previous="storeUsers.previousPage"
+        :on-next="storeUsers.nextPage"
       />
     </div>
   </section>

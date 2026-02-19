@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import type { UserRowAction } from '@/interfaces'
+import type { DropdownAction } from '@/utils'
 
 const props = withDefaults(
   defineProps<{
     open: boolean
-    actions: UserRowAction[]
+    actions: DropdownAction[]
     onToggle: () => void
-    onSelect: (actionId: string) => void
   }>(),
   {
     open: false,
@@ -35,7 +34,7 @@ const props = withDefaults(
         type="button"
         class="flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition hover:bg-slate-100 dark:hover:bg-slate-800"
         :class="action.tone === 'danger' ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-slate-200'"
-        @click.stop="props.onSelect(action.id)"
+        @click.stop="action.handler()"
       >
         {{ action.label }}
       </button>

@@ -2,7 +2,6 @@ export type {
   UserRoleRaw,
   UserRaw,
   UserTableRow,
-  UserRowAction,
   UserPagedResponse,
   UsersPagination,
   UsersQueryParams,
